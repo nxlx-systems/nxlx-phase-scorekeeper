@@ -75,6 +75,10 @@ Everything is stored on your own device, in the browser's storage for this site.
 
 The app is free. If it saves you a pencil, you can [pay what you want on Gumroad](https://anthonygiglio.gumroad.com). Questions or ideas: open an [issue](https://github.com/nxlx-systems/nxlx-phase-scorekeeper/issues).
 
+## Licence
+
+The code is shared under the **[PolyForm Noncommercial License 1.0.0](LICENSE.md)**. You may use, study and change it for any noncommercial purpose, including personal use and use by charities, schools and public bodies. Selling it, or using it to make money, needs written permission from NXLX.Systems. The name Phase Ten Scorekeeper and the app icon are not covered by the licence.
+
 ---
 
 <p align="center">
