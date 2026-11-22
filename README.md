@@ -32,7 +32,8 @@
 |---|---|
 | 🏆 **Live scoreboard** | Everyone's phase, total points and the leader, sorted the way the rules rank players. |
 | ✅ **Fast round entry** | One tap for "made phase", one tap for "went out", type the rest. |
-| 🧮 **Card counter** | Tap in the cards left in a hand (1 to 9, 10 to 12, Skip, Wild) and it adds the points for you. |
+| 🧮 **Card counter** | Tap in the cards left in a hand (1 to 9, 10 to 12, Skip, Wild) and it adds the points and counts the cards for you. |
+| 🚦 **Catches mistakes** | A player who missed their phase still holds 10 cards, so the app flags anything under 50 points. It also flags points that aren't in 5s and totals no hand can reach. |
 | 🃏 **Dealer tracking** | Shows who deals and who plays first, and passes the deal each round. |
 | ✏️ **Fix mistakes** | Edit any past round from a clearly marked editing screen. |
 | 📚 **Past games** | Finished games are kept, with every round. |
@@ -55,12 +56,14 @@
 ## How to use it
 
 1. **Set up a game.** Enter the players in seating order and pick who deals first.
-2. **After each hand**, tap **Score round**. For each player, tick **Made phase** and enter the points left in their hand (or tap **Went out** for 0). Use **Count** to add up a hand.
+2. **After each hand**, tap **Score round**. For each player, tick **Made phase** and enter the points left in their hand (or tap **Went out** for 0). Use **Count** to add up a hand. If a number can't be right, that player's row turns red and says why; you can still save anyway for house rules.
 3. **Save.** The scoreboard updates and the deal moves to the next player.
 4. When someone finishes phase 10, the app names the winner and offers a new game.
 
 <p align="center">
-  <img src="docs/count-dark.png" width="240" alt="Card counter adding up a hand">
+  <img src="docs/count-dark.png" width="240" alt="Card counter: 10 cards adding up to 90 points">
+  &nbsp;
+  <img src="docs/check-dark.png" width="240" alt="A player who missed their phase with only 35 points is flagged in red">
 </p>
 
 ## Updates
