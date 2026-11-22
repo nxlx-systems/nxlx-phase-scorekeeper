@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Phase Ten Scorekeeper</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Phase Ten">
+<meta name="theme-color" content="#14161c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#f4f1ea; --card:#fffdf8; --ink:#1c1d22; --muted:#6b6a66; --line:#e2ddd2;
+  --accent:#d6452f; --accent-ink:#fff; --good:#2f8f5b; --gold:#c9961a;
+  --p1:#d6452f; --p2:#2f6fd6; --p3:#2f8f5b; --p4:#c9961a; --p5:#8a4fd6; --p6:#d62f8a;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14161c; --card:#1e2129; --ink:#f1efe9; --muted:#9a9890; --line:#2e323c;
+    --accent:#ff6a4d; --good:#4cc283; --gold:#e8b53a; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* stop iPhone from enlarging text on its own (it does more when turned sideways) */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* no pinch or double-tap zoom, no rubber-band stretching past the edges */
+html,body{touch-action:pan-x pan-y;overscroll-behavior:none}
+button,label,input,textarea{touch-action:manipulation}
+/* buttons, labels and fields use the same font as everything else */
+button,input,textarea,select,label{font-family:inherit;line-height:inherit}
+/* side gutter: 16px, more beside the notch, and centred on wide screens */
+:root{--gl:max(16px, env(safe-area-inset-left), calc((100% - 760px) / 2));--gr:max(16px, env(safe-area-inset-right), calc((100% - 760px) / 2))}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
+header{display:flex;align-items:center;gap:8px;padding:14px var(--gr) 6px var(--gl)}
+header h1{font-size:28px;margin:0;flex:1;letter-spacing:-.5px}
+header h1 small{display:block;font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
+.iconbtn{border:0;background:var(--card);color:var(--ink);border-radius:12px;height:40px;min-width:40px;
+  padding:0 12px;font-size:15px;font-weight:600;box-shadow:0 0 0 1px var(--line) inset}
+main,#upd{padding:0 var(--gr) 0 var(--gl)}
+.card{background:var(--card);border-radius:16px;box-shadow:0 0 0 1px var(--line) inset;padding:14px;margin:10px 0}
+.player{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.rank{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;
+  background:var(--line);color:var(--ink)}
+.rank.first{background:var(--gold);color:#fff}
+.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.pdesc{color:var(--muted);font-size:14px}
+.phasebadge{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.right{text-align:right}
+.big{font-size:26px;font-weight:800;line-height:1}
+.pts{font-size:12px;color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--line);margin-top:10px;overflow:hidden;grid-column:1/-1}
+.bar>i{display:block;height:100%;border-radius:3px}
+.cta{position:fixed;left:var(--gl);right:var(--gr);bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:5;
+  border:0;border-radius:16px;height:58px;font-size:18px;font-weight:700;background:var(--accent);color:var(--accent-ink);
+  box-shadow:0 8px 24px rgba(0,0,0,.25)}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:22px 2px 6px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:8px 4px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--muted);font-weight:600}
+td.r{color:var(--muted);width:34px}
+tr.tap{cursor:pointer}
+.made{color:var(--good);font-weight:700;font-size:12px;display:block}
+.miss{color:var(--muted);font-size:12px;display:block}
+.empty{color:var(--muted);text-align:center;padding:20px}
+.banner{background:var(--gold);color:#fff;border-radius:16px;padding:16px;margin:10px 0;text-align:center}
+.banner b{font-size:22px;display:block}
+
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;background:var(--bg)}
+.sheet.open{display:flex}
+.sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) var(--gr) 10px var(--gl);
+  border-bottom:1px solid var(--line);background:var(--card)}
+.sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center}
+.sheet .body{flex:1;overflow:auto;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
+.link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
+.link.l{text-align:left}.link.r{text-align:right}
+.entry .row1{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.entry .row1 .pname{flex:1}
+.toggle{border:0;border-radius:12px;height:44px;padding:0 14px;font-size:15px;font-weight:700;
+  background:var(--line);color:var(--ink)}
+.toggle.on{background:var(--good);color:#fff}
+.ptsrow{display:flex;gap:8px;align-items:center}
+.ptsrow input{flex:1;min-width:0;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--bg);
+  color:var(--ink);font-size:22px;font-weight:700;padding:0 12px;text-align:right}
+.chip{border:0;border-radius:12px;height:48px;padding:0 12px;font-size:14px;font-weight:700;background:var(--line);color:var(--ink)}
+.chip.out.on{background:var(--accent);color:#fff}
+.hint{color:var(--muted);font-size:13px;margin:4px 2px 0}
+.counter{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin:8px 0}
+.counter .lbl b{display:block}
+.counter .lbl span{color:var(--muted);font-size:13px}
+.counter button{width:48px;height:48px;border-radius:12px;border:0;background:var(--line);color:var(--ink);font-size:24px;font-weight:700}
+.counter .n{min-width:28px;text-align:center;font-size:20px;font-weight:700}
+.total{font-size:40px;font-weight:800;text-align:center;margin:14px 0}
+.wide{display:block;width:100%;border:0;border-radius:14px;height:52px;font-size:17px;font-weight:700;margin:10px 0;
+  background:var(--line);color:var(--ink)}
+.wide.primary{background:var(--accent);color:#fff}
+.wide.danger{background:none;color:var(--accent);box-shadow:0 0 0 1px var(--line) inset}
+.namerow{display:flex;gap:8px;margin:8px 0}
+.namerow input{flex:1;min-width:0;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:18px;padding:0 12px}
+.namerow button{width:48px;border:0;border-radius:12px;background:var(--line);color:var(--ink);font-size:20px}
+ol.phases{padding-left:28px;margin:8px 0}
+ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
+.menuitem{display:block;width:100%;text-align:left;font-weight:400;line-height:1.35;border:0;background:var(--card);color:var(--ink);font-size:17px;
+  padding:16px;border-radius:14px;margin:8px 0;box-shadow:0 0 0 1px var(--line) inset}
+.menuitem span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.dealer{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.dicon{font-size:28px;width:30px;text-align:center}
+.dtag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--ink);color:var(--bg);
+  border-radius:6px;padding:2px 6px;margin-left:4px}
+.dealt{display:block;font-size:11px;color:var(--muted);font-style:italic}
+.sechead{display:flex;align-items:center;justify-content:space-between;margin-top:22px}
+.sechead h2{margin:0 2px}
+.chip.small{height:36px;font-size:14px}
+.editwarn{background:#f3c64a;color:#2a2100;border-radius:14px;padding:12px 14px;margin:10px 0;font-size:15px}
+.editwarn b{display:block;margin-bottom:2px}
+#sheetRound.editing .top{background:#f3c64a}
+#sheetRound.editing .top h3{color:#2a2100}
+#sheetRound.editing .top .link{color:#2a2100}
+.updbar{display:flex;gap:10px;align-items:center;background:var(--good);color:#fff;border-radius:14px;padding:10px 12px;margin:10px 0}
+.updbar span{flex:1;font-size:15px}
+.updbar button{border:0;border-radius:10px;height:38px;padding:0 14px;font-weight:700;background:#fff;color:#1c1d22}
+.welcome{text-align:center;padding:22px 18px}
+.welcome p{margin:10px 0;text-align:left}
+.wicon{font-size:48px}
+.wtitle{font-size:26px;text-transform:none;letter-spacing:0;color:var(--ink);margin:6px 0 4px}
+.dealpick{display:flex;flex-wrap:wrap;gap:8px}
+/* wider screens and sideways phones: player cards side by side */
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));column-gap:10px}
+/* sideways phone (short screen): slimmer header and bottom button */
+@media (max-height:500px){
+  header{padding-top:8px}
+  header h1{font-size:22px}
+  .cta{height:46px;font-size:16px;bottom:calc(env(safe-area-inset-bottom) + 8px)}
+  body{padding-bottom:calc(env(safe-area-inset-bottom) + 66px)}
+}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+label.menuitem{cursor:pointer}
+.pastebox{width:100%;min-height:220px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  font:16px/1.4 ui-monospace,Menlo,monospace;padding:10px}
+.past{padding:12px 14px}
+.past b{display:block}
+.past span{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Phase Ten<small id="sub"></small></h1>
+  <button class="iconbtn" id="btnMenu" aria-label="Menu">Menu</button>
+</header>
+<div id="upd"></div>
+<main id="main"></main>
+<button class="cta" id="btnRound">Score round</button>
+
+<!-- Round entry -->
+<section class="sheet" id="sheetRound">
+  <div class="top"><button class="link l" data-close>Cancel</button><h3 id="roundTitle">Round</h3><button class="link r" id="btnSaveRound">Save</button></div>
+  <div class="body" id="roundBody"></div>
+</section>
+
+<!-- Card counter -->
+<section class="sheet" id="sheetCount">
+  <div class="top"><button class="link l" id="btnCountCancel">Cancel</button><h3 id="countTitle">Count cards</h3><button class="link r" id="btnCountUse">Use</button></div>
+  <div class="body" id="countBody"></div>
+</section>
+
+<!-- Menu -->
+<section class="sheet" id="sheetMenu">
+  <div class="top"><span style="min-width:64px"></span><h3>Menu</h3><button class="link r" data-close>Done</button></div>
+  <div class="body" id="menuBody"></div>
+</section>
+
+<!-- Generic page (players, phases, past games) -->
+<section class="sheet" id="sheetPage">
+  <div class="top"><button class="link l" id="pageBack">Back</button><h3 id="pageTitle"></h3><button class="link r" id="pageAction"></button></div>
+  <div class="body" id="pageBody"></div>
+</section>
+
+<script>
+const PHASES = [
+  "2 sets of 3",
+  "1 set of 3 + 1 run of 4",
+  "1 set of 4 + 1 run of 4",
+  "1 run of 7",
+  "1 run of 8",
+  "1 run of 9",
+  "2 sets of 4",
+  "7 cards of one color",
+  "1 set of 5 + 1 set of 2",
+  "1 set of 5 + 1 set of 3"
+];
+const CARDS = [
+  {k:"low", label:"Cards 1 to 9", note:"5 points each", v:5},
+  {k:"high", label:"Cards 10 to 12", note:"10 points each", v:10},
+  {k:"skip", label:"Skip", note:"15 points each", v:15},
+  {k:"wild", label:"Wild", note:"25 points each", v:25}
+];
+const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var(--p6)"];
+const KEY = "phase10.v1";          // where scores live; never changes between app versions
+const APP_VERSION = 8;            // bump with version.json on every update
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- storage ---------- */
+function newGame(players){ return {id:Date.now(), started:new Date().toISOString(), players:[...players], rounds:[], ended:null}; }
+function load(){
+  // Existing scores on this phone are always kept. A first visit starts empty (welcome screen).
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") return {current: s.current || null, past: s.past || []}; } catch(e){}
+  return {current:null, past:[]};
+}
+let state = load();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+
+/* ---------- game maths ---------- */
+function stats(g){
+  return g.players.map((name,i) => {
+    let total=0, done=0;
+    g.rounds.forEach(r => { total += Number(r.pts[i])||0; if (r.made[i]) done++; });
+    return {i, name, total, done, phase: Math.min(done+1, 10), finished: done>=10};
+  });
+}
+function ranked(g){
+  return stats(g).sort((a,b) => b.done - a.done || a.total - b.total);
+}
+// Dealer moves one seat to the left (next player in the list) every round.
+function nextDealer(g){
+  const n = g.players.length;
+  if (g.dealerSet != null) return g.dealerSet % n;
+  const last = g.rounds[g.rounds.length-1];
+  if (last && last.dealer != null) return (last.dealer + 1) % n;
+  return ((g.firstDealer || 0) + g.rounds.length) % n;
+}
+function dealerOf(g, ri){
+  const r = g.rounds[ri];
+  if (r && r.dealer != null) return r.dealer;
+  return ((g.firstDealer || 0) + ri) % g.players.length;
+}
+function winner(g){
+  const s = stats(g).filter(p => p.finished);
+  if (!s.length) return null;
+  s.sort((a,b) => a.total - b.total);
+  return s[0];
+}
+
+/* ---------- main screen ---------- */
+function renderWelcome(){
+  $("#sub").textContent = "Score keeper";
+  $("#btnRound").textContent = "Set up a game";
+  $("#main").innerHTML = `
+    <div class="card welcome">
+      <div class="wicon">🃏</div>
+      <h2 class="wtitle">Welcome!</h2>
+      <p>Keep score for Phase 10<sup>*</sup> without paper. After each hand, enter everyone's points and tick who made their phase. The app keeps the totals, tracks each person's phase and shows who deals next.</p>
+      <p class="hint">Works without internet once it's on your home screen: in Safari tap Share, then Add to Home Screen. Scores stay on this phone.</p>
+      <p class="hint">* Phase 10 is a trademark of Mattel. This app is made by NXLX.Systems and is not affiliated with or endorsed by Mattel.</p>
+    </div>
+    ${state.past.length ? `<div class="card"><b>${state.past.length} past game${state.past.length>1?"s":""}</b> saved. Open Menu to see them.</div>` : ""}
+    <button class="wide" id="wRestore">I have a backup to restore</button>`;
+  $("#wRestore").onclick = () => { drawMenu(); open("#sheetMenu"); };
+}
+function render(){
+  const g = state.current;
+  if (!g) return renderWelcome();
+  const n = g.rounds.length;
+  $("#sub").textContent = n ? `${n} round${n>1?"s":""} played` : "New game";
+  const w = winner(g);
+  const rk = ranked(g);
+  let h = "";
+  if (w) h += `<div class="banner"><b>${esc(w.name)} wins!</b>Finished phase 10 with ${w.total} points</div>`;
+  const d = nextDealer(g);
+  if (!w) h += `<div class="card dealer"><div class="dicon">🃏</div>
+      <div><div class="phasebadge">Round ${n+1} dealer</div><div class="pname">${esc(g.players[d])}</div>
+      <div class="pdesc">${esc(g.players[(d+1)%g.players.length])} plays first</div></div>
+      <button class="chip" id="btnDealer">Change</button></div>`;
+  h += `<div class="board">`;
+  rk.forEach((p,idx) => {
+    const lead = idx===0 && n>0;
+    h += `<div class="card player">
+      <div class="rank ${lead?"first":""}">${idx+1}</div>
+      <div>
+        <div class="pname"><span class="dot" style="background:${COLORS[p.i%6]}"></span>${esc(p.name)}${p.i===d && !w ? `<span class="dtag">Dealer</span>` : ""}</div>
+        <div class="phasebadge">${p.finished ? "All 10 done" : "Phase "+p.phase}</div>
+        <div class="pdesc">${p.finished ? "Finished" : esc(PHASES[p.phase-1])}</div>
+      </div>
+      <div class="right"><div class="big">${p.total}</div><div class="pts">points</div></div>
+      <div class="bar"><i style="width:${p.done*10}%;background:${COLORS[p.i%6]}"></i></div>
+    </div>`;
+  });
+  h += `</div>`;
+  h += `<div class="sechead"><h2>Rounds</h2>${n ? `<button class="chip small" id="btnEditRounds">Edit a round</button>` : ""}</div>`;
+  if (!n) h += `<div class="card empty">No rounds yet. Tap “Score round” after each hand.</div>`;
+  else {
+    h += `<div class="card" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    g.rounds.forEach((r,ri) => {
+      const rd = dealerOf(g, ri);
+      h += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>
+        `<td>${Number(r.pts[i])||0}${r.made[i]?`<span class="made">✓ phase</span>`:`<span class="miss">missed</span>`}${i===rd?`<span class="dealt">dealt</span>`:""}</td>`).join("")}</tr>`;
+    });
+    h += `</table></div>`;
+  }
+  $("#main").innerHTML = h;
+  $("#btnRound").textContent = w ? "Start a new game" : `Score round ${n+1}`;
+  const be = $("#btnEditRounds"); if (be) be.onclick = pickRoundToEdit;
+  const bd = $("#btnDealer"); if (bd) bd.onclick = chooseDealer;
+}
+function pickRoundToEdit(){
+  const g = state.current;
+  const list = g.rounds.map((r,ri) => ({r,ri})).reverse().map(({r,ri}) =>
+    `<button class="menuitem" data-edit="${ri}"><b>Round ${ri+1}</b>${ri===g.rounds.length-1?" (last round)":""}
+      <span>${g.players.map((p,i)=>`${esc(p)} ${r.pts[i]}${r.made[i]?" ✓":""}`).join(" · ")}</span></button>`).join("");
+  showPage("Which round?", `<p class="hint">Pick the round you want to change. ✓ means they made their phase.</p>${list}`);
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { close("#sheetPage"); openRound(+b.dataset.edit); });
+}
+function chooseDealer(){
+  const g = state.current, cur = nextDealer(g);
+  showPage("Who deals?", g.players.map((p,i) =>
+    `<button class="menuitem" data-deal="${i}">${esc(p)}${i===cur?" ✓":""}<span>${esc(g.players[(i+1)%g.players.length])} plays first</span></button>`).join("")
+    + `<p class="hint">After each round the deal passes to the next player in the list.</p>`);
+  document.querySelectorAll("[data-deal]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.deal;
+    if (g.rounds.length) g.dealerSet = i; else { g.firstDealer = i; g.dealerSet = null; }
+    save(); close("#sheetPage"); render();
+  });
+}
+
+/* ---------- round entry ---------- */
+let draft = null; // {index, pts:[], made:[], out:[]}
+function openRound(index){
+  const g = state.current;
+  const existing = index!=null ? g.rounds[index] : null;
+  draft = {
+    index: index==null ? null : index,
+    pts: g.players.map((_,i) => existing ? String(existing.pts[i] ?? "") : ""),
+    made: g.players.map((_,i) => existing ? !!existing.made[i] : false)
+  };
+  const dl = index==null ? nextDealer(g) : dealerOf(g, index);
+  const num = (index==null ? g.rounds.length : index)+1;
+  $("#roundTitle").textContent = index==null ? `Round ${num} · ${g.players[dl]} deals` : `Editing round ${num}`;
+  $("#btnSaveRound").textContent = index==null ? "Save" : "Save changes";
+  $("#sheetRound").classList.toggle("editing", index!=null);
+  drawRound();
+  open("#sheetRound");
+}
+function drawRound(){
+  const g = state.current, st = stats(g);
+  let h = "";
+  if (draft.index!=null) h += `<div class="editwarn"><b>You are changing round ${draft.index+1}, which was already played.</b>
+      ${g.players[dealerOf(g, draft.index)]} dealt it. Tap Cancel to leave it as it was.</div>`;
+  g.players.forEach((name,i) => {
+    // phase they were attempting in this round
+    let done = 0; const upto = draft.index==null ? g.rounds.length : draft.index;
+    for (let r=0;r<upto;r++) if (g.rounds[r].made[i]) done++;
+    const ph = Math.min(done+1,10);
+    const isOut = draft.pts[i]==="0";
+    h += `<div class="card entry">
+      <div class="row1">
+        <div class="pname"><span class="dot" style="background:${COLORS[i%6]}"></span>${esc(name)}
+          <span class="pdesc" style="font-weight:400">· Phase ${ph}</span></div>
+        <button class="toggle ${draft.made[i]?"on":""}" data-made="${i}">${draft.made[i]?"✓ Made phase":"Made phase?"}</button>
+      </div>
+      <div class="ptsrow">
+        <button class="chip out ${isOut?"on":""}" data-out="${i}">Went out</button>
+        <input inputmode="numeric" pattern="[0-9]*" placeholder="Points" value="${esc(draft.pts[i])}" data-pts="${i}" aria-label="Points for ${esc(name)}">
+        <button class="chip" data-count="${i}">Count</button>
+      </div>
+      <p class="hint">${esc(PHASES[ph-1])}</p>
+    </div>`;
+  });
+  h += `<p class="hint">Points are the cards left in your hand. “Count” adds them up for you. Blank counts as 0.</p>`;
+  if (draft.index!=null) h += `<button class="wide danger" id="btnDelRound">Delete this round</button>`;
+  $("#roundBody").innerHTML = h;
+  document.querySelectorAll("[data-made]").forEach(b => b.onclick = () => { const i=+b.dataset.made; draft.made[i]=!draft.made[i]; drawRound(); });
+  document.querySelectorAll("[data-out]").forEach(b => b.onclick = () => { const i=+b.dataset.out; draft.pts[i]="0"; draft.made[i]=true; drawRound(); });
+  document.querySelectorAll("[data-pts]").forEach(inp => inp.oninput = () => { draft.pts[+inp.dataset.pts] = inp.value.replace(/[^0-9]/g,""); });
+  document.querySelectorAll("[data-count]").forEach(b => b.onclick = () => openCount(+b.dataset.count));
+  const del = $("#btnDelRound");
+  if (del) del.onclick = () => {
+    if (!confirm(`Delete round ${draft.index+1}? This cannot be undone.`)) return;
+    state.current.rounds.splice(draft.index,1); save(); close("#sheetRound"); render();
+  };
+}
+$("#btnSaveRound").onclick = () => {
+  document.activeElement && document.activeElement.blur();
+  const r = {pts: draft.pts.map(v => parseInt(v,10)||0), made: [...draft.made]};
+  const g = state.current;
+  if (draft.index==null){ r.dealer = nextDealer(g); g.rounds.push(r); g.dealerSet = null; }
+  else { r.dealer = dealerOf(g, draft.index); g.rounds[draft.index] = r; }
+  save(); close("#sheetRound"); render();
+};
+
+/* ---------- card counter ---------- */
+let countFor = null, counts = {};
+function openCount(i){
+  countFor = i; counts = {low:0,high:0,skip:0,wild:0};
+  $("#countTitle").textContent = state.current.players[i];
+  drawCount(); open("#sheetCount");
+}
+function countTotal(){ return CARDS.reduce((s,c) => s + counts[c.k]*c.v, 0); }
+function drawCount(){
+  let h = `<div class="total">${countTotal()}<div class="pts">points in hand</div></div>`;
+  CARDS.forEach(c => {
+    h += `<div class="card counter"><div class="lbl"><b>${c.label}</b><span>${c.note}</span></div>
+      <button data-dec="${c.k}" aria-label="One less">−</button><div class="n">${counts[c.k]}</div><button data-inc="${c.k}" aria-label="One more">+</button></div>`;
+  });
+  $("#countBody").innerHTML = h;
+  document.querySelectorAll("[data-inc]").forEach(b => b.onclick = () => { counts[b.dataset.inc]++; drawCount(); });
+  document.querySelectorAll("[data-dec]").forEach(b => b.onclick = () => { counts[b.dataset.dec]=Math.max(0,counts[b.dataset.dec]-1); drawCount(); });
+}
+$("#btnCountCancel").onclick = () => close("#sheetCount");
+$("#btnCountUse").onclick = () => { draft.pts[countFor] = String(countTotal()); close("#sheetCount"); drawRound(); };
+
+/* ---------- menu & pages ---------- */
+function drawMenu(){
+  $("#menuBody").innerHTML = `
+    <button class="menuitem" id="mNew">New game<span>Keeps this game in Past games</span></button>
+    <button class="menuitem" id="mPlayers">Players<span>Rename, add or remove</span></button>
+    <button class="menuitem" id="mPhases">The 10 phases<span>Quick reference</span></button>
+    <button class="menuitem" id="mPast">Past games<span>${state.past.length} saved</span></button>
+    <button class="menuitem" id="mUpdate">Check for updates<span>You have version ${APP_VERSION}. Your scores are kept.</span></button>
+    <button class="menuitem" id="mExport">Back up scores<span>Saves a file you can keep in Files or iCloud</span></button>
+    <label class="menuitem" for="fileIn">Restore from backup<span>Pick a backup file from Files or iCloud</span></label>
+    <input type="file" id="fileIn" class="vh">
+    <button class="menuitem" id="mCopy">Copy backup as text<span>Paste it into Notes or a message to keep it</span></button>
+    <button class="menuitem" id="mPaste">Restore from pasted text<span>Use this if picking a file does not work</span></button>
+    <p class="hint" style="margin-top:16px">Phase Ten Scorekeeper v${APP_VERSION} by NXLX.Systems. Phase 10 is a trademark of Mattel; this app is not affiliated with or endorsed by Mattel.</p>`;
+  $("#mNew").onclick = () => { close("#sheetMenu"); startNew(); };
+  if (!state.current) $("#mPlayers").style.display = "none";
+  $("#mPlayers").onclick = () => showPlayers();
+  $("#mPhases").onclick = () => showPage("The 10 phases", `<ol class="phases">${PHASES.map(p=>`<li>${p}</li>`).join("")}</ol>
+      <h2>Card points</h2><div class="card">${CARDS.map(c=>`<div>${c.label}: <b>${c.v}</b></div>`).join("")}</div>`);
+  $("#mPast").onclick = () => showPast();
+  $("#mExport").onclick = exportData;
+  $("#mUpdate").onclick = async () => {
+    const r = await checkForUpdate();
+    if (r === "offline") alert("You're offline. Connect to the internet and try again. Your scores are fine.");
+    else if (r === "current") alert(`You have the newest version (${APP_VERSION}).`);
+    else { close("#sheetMenu"); applyUpdate(r); }
+  };
+  $("#fileIn").onchange = importData;
+  $("#mCopy").onclick = copyBackup;
+  $("#mPaste").onclick = () => {
+    showPage("Restore from text", `<p class="hint">Paste the backup text below, then tap Restore.</p>
+      <textarea id="pasteBox" class="pastebox" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>`,
+      "Restore", () => restoreFromText($("#pasteBox").value));
+  };
+}
+async function copyBackup(){
+  const text = JSON.stringify(state);
+  try { await navigator.clipboard.writeText(text); alert("Backup copied. Paste it into Notes or a message to keep it."); }
+  catch(e){
+    showPage("Backup text", `<p class="hint">Select all of this text and copy it.</p>
+      <textarea class="pastebox" readonly>${esc(text)}</textarea>`);
+  }
+}
+function startNew(){
+  const g = state.current;
+  const names = g ? [...g.players] : (state.past[0] ? [...state.past[0].players] : ["",""]);
+  const dealer = g && g.rounds.length ? nextDealer(g) : (g ? (g.firstDealer || 0) : 0);
+  openSetup(names, dealer);
+}
+// Game setup: who's playing and who deals first. Nothing changes until "Start".
+function openSetup(names, dealer){
+  let list = names.length >= 2 ? [...names] : [...names, ...Array(2 - names.length).fill("")];
+  let first = Math.min(dealer || 0, list.length - 1);
+  const draw = () => {
+    const shown = list.map((n,i) => n.trim() || `Player ${i+1}`);
+    let h = `<p class="hint">Who's playing? Enter names in seating order, going left around the table. The deal passes in this order.</p>`;
+    h += list.map((n,i)=>`<div class="namerow"><input value="${esc(n)}" data-sname="${i}" placeholder="Player ${i+1}" autocapitalize="words">${
+      list.length>2?`<button data-srm="${i}" aria-label="Remove player">✕</button>`:""}</div>`).join("");
+    if (list.length < 6) h += `<button class="wide" id="sAdd">Add player</button>`;
+    h += `<h2>Who deals first?</h2><div class="dealpick">${shown.map((n,i)=>
+      `<button class="toggle ${i===first?"on":""}" data-sdeal="${i}">${esc(n)}</button>`).join("")}</div>
+      <p class="hint" id="sFirst">${esc(shown[(first+1)%shown.length])} plays first.</p>
+      <button class="wide primary" id="sStart">Start game</button>`;
+    $("#pageBody").innerHTML = h;
+    document.querySelectorAll("[data-sname]").forEach(inp => {
+      inp.oninput = () => {
+        const i = +inp.dataset.sname; list[i] = inp.value;
+        const nm = j => list[j].trim() || `Player ${j+1}`;
+        document.querySelector(`[data-sdeal="${i}"]`).textContent = nm(i);
+        $("#sFirst").textContent = `${nm((first+1)%list.length)} plays first.`;
+      };
+    });
+    document.querySelectorAll("[data-srm]").forEach(b => b.onclick = () => {
+      list.splice(+b.dataset.srm,1); if (first >= list.length) first = 0; draw(); });
+    document.querySelectorAll("[data-sdeal]").forEach(b => b.onclick = () => { first = +b.dataset.sdeal; draw(); });
+    const add = $("#sAdd"); if (add) add.onclick = () => { list.push(""); draw(); const ins = document.querySelectorAll("[data-sname]"); ins[ins.length-1].focus(); };
+    $("#sStart").onclick = start;
+  };
+  const start = () => {
+    const g = state.current;
+    if (g && g.rounds.length && !confirm("Start a new game? The current game moves to Past games.")) return;
+    if (g && g.rounds.length){ g.ended = new Date().toISOString(); state.past.unshift(g); }
+    const ng = newGame(list.map((n,i)=>n.trim() || `Player ${i+1}`));
+    ng.firstDealer = first;
+    state.current = ng;
+    save(); close("#sheetPage"); close("#sheetMenu"); render();
+  };
+  showPage("New game", "", "Start", () => start());
+  draw();
+}
+function showPage(title, html, action, onAction){
+  $("#pageTitle").textContent = title;
+  $("#pageBody").innerHTML = html;
+  const a = $("#pageAction"); a.textContent = action || ""; a.onclick = onAction || null;
+  open("#sheetPage");
+}
+$("#pageBack").onclick = () => close("#sheetPage");
+
+function showPlayers(){
+  const g = state.current, locked = g.rounds.length>0;
+  let names = [...g.players];
+  const draw = () => {
+    let h = names.map((n,i)=>`<div class="namerow"><input value="${esc(n)}" data-name="${i}" placeholder="Name">${
+      locked?"":`<button data-rm="${i}" aria-label="Remove">✕</button>`}</div>`).join("");
+    h += locked
+      ? `<p class="hint">You can rename players now. To add or remove players, start a new game first.</p>`
+      : `<button class="wide" id="addP">Add player</button>`;
+    $("#pageBody").innerHTML = h;
+    document.querySelectorAll("[data-name]").forEach(inp => inp.oninput = () => names[+inp.dataset.name] = inp.value);
+    document.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { if (names.length>2){ names.splice(+b.dataset.rm,1); draw(); } });
+    const add = $("#addP"); if (add) add.onclick = () => { if (names.length<6){ names.push(""); draw(); } };
+  };
+  showPage("Players", "", "Save", () => {
+    const clean = names.map((n,i)=>n.trim() || `Player ${i+1}`);
+    g.players = clean;
+    if (!locked) g.rounds = [];
+    save(); close("#sheetPage"); render();
+  });
+  draw();
+}
+function showPast(){
+  if (!state.past.length) return showPage("Past games", `<div class="card empty">No finished games yet.</div>`);
+  const h = state.past.map((g,gi) => {
+    const w = winner(g) || ranked(g)[0];
+    const d = new Date(g.started).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+    return `<button class="menuitem past" data-past="${gi}"><b>${d} · ${esc(w.name)} ${winner(g)?"won":"led"}</b>
+      <span>${ranked(g).map(p=>`${esc(p.name)} P${p.finished?"10 ✓":p.phase} ${p.total}`).join(" · ")} · ${g.rounds.length} rounds</span></button>`;
+  }).join("");
+  showPage("Past games", h);
+  document.querySelectorAll("[data-past]").forEach(b => b.onclick = () => {
+    const g = state.past[+b.dataset.past];
+    let t = `<div class="card" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${r.pts[i]}${r.made[i]?`<span class="made">✓</span>`:""}</td>`).join("")}</tr>`; });
+    t += `<tr><th>Σ</th>${stats(g).map(p=>`<th>${p.total}</th>`).join("")}</tr></table></div>
+      <button class="wide danger" id="delPast">Delete this game</button>`;
+    showPage("Game", t);
+    $("#delPast").onclick = () => { if (confirm("Delete this past game? This cannot be undone.")){ state.past.splice(+b.dataset.past,1); save(); showPast(); } };
+  });
+}
+async function exportData(){
+  const text = JSON.stringify(state, null, 1);
+  const name = `phase10-backup-${new Date().toISOString().slice(0,10)}.json`;
+  const file = new File([text], name, {type:"application/json"});
+  try {
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Phase Ten Scorekeeper backup"}); return; }
+  } catch(e){ if (e.name==="AbortError") return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; a.click();
+}
+function readFile(f){
+  if (f.text) return f.text();
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsText(f); });
+}
+function parseBackup(text){
+  text = String(text || "").replace(/^﻿/, "").trim();
+  // tolerate extra text around the backup (e.g. pasted from a message)
+  const a = text.indexOf("{"), b = text.lastIndexOf("}");
+  if (a < 0 || b < a) throw new Error("no backup found");
+  const s = JSON.parse(text.slice(a, b + 1));
+  const g = s.current || (Array.isArray(s.players) && Array.isArray(s.rounds) ? s : null);
+  if (!g || !Array.isArray(g.players) || !Array.isArray(g.rounds)) throw new Error("not a scorekeeper backup");
+  return { current: g, past: Array.isArray(s.past) ? s.past : [] };
+}
+function restoreFromText(text){
+  let s;
+  try { s = parseBackup(text); }
+  catch(e){ alert("That isn't a scorekeeper backup (" + e.message + ")."); return; }
+  const n = s.current.rounds.length;
+  if (!confirm(`Replace the scores on this phone with the backup? (${s.current.players.join(", ")}, ${n} round${n===1?"":"s"}, ${s.past.length} past game${s.past.length===1?"":"s"})`)) return;
+  state = s; save();
+  document.querySelectorAll(".sheet.open").forEach(el => el.classList.remove("open"));
+  render();
+}
+function importData(ev){
+  const input = ev.target, f = input.files && input.files[0];
+  if (!f) return;
+  readFile(f).then(restoreFromText).catch(e => alert("Could not read that file: " + (e && e.message || e)))
+    .finally(() => { input.value = ""; });
+}
+
+/* ---------- sheets ---------- */
+function open(sel){ $(sel).classList.add("open"); }
+function close(sel){ $(sel).classList.remove("open"); }
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".sheet").classList.remove("open"));
+$("#btnMenu").onclick = () => { drawMenu(); open("#sheetMenu"); };
+$("#btnRound").onclick = () => { if (!state.current || winner(state.current)) startNew(); else openRound(null); };
+
+/* ---------- updates ---------- */
+// Returns "offline", "current", or the newer version info.
+async function checkForUpdate(){
+  try {
+    const res = await fetch("version.json?t=" + Date.now(), {cache: "no-store"});
+    if (!res.ok) return "offline";
+    const v = await res.json();
+    return (Number(v.version) > APP_VERSION) ? v : "current";
+  } catch(e){ return "offline"; }
+}
+function showUpdateBar(v){
+  $("#upd").innerHTML = `<div class="updbar"><span><b>Update available</b><br>${esc(v.notes || "A newer version is ready.")}</span>
+    <button id="btnUpd">Update now</button></div>`;
+  $("#btnUpd").onclick = () => applyUpdate(v);
+}
+async function applyUpdate(v){
+  if (!confirm(`Update to version ${v.version}? Your scores stay exactly as they are.`)) return;
+  // Safety copy of the scores before anything changes.
+  try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); } catch(e){}
+  save();
+  try {
+    // Clear only the saved app files (not the scores) so the newest ones download.
+    const ks = await caches.keys();
+    await Promise.all(ks.filter(k => k.startsWith("phase10-")).map(k => caches.delete(k)));
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.update().catch(()=>{});
+  } catch(e){}
+  location.reload();
+}
+async function autoCheck(){
+  if (!navigator.onLine) return;
+  const r = await checkForUpdate();
+  if (r && typeof r === "object") showUpdateBar(r); else $("#upd").innerHTML = "";
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) autoCheck(); });
+
+/* ---------- no zooming ---------- */
+// iPhone Safari ignores user-scalable=no, so also cancel the pinch gesture itself.
+["gesturestart","gesturechange","gestureend"].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+document.addEventListener("touchmove", e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, {passive:false});
+// Double-tap zoom is turned off by touch-action in the styles (keeps fast repeat taps working).
+
+render();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+autoCheck();
+</script>
+</body>
+</html>
