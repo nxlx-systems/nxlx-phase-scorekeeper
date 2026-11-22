@@ -127,7 +127,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 .updbar button{border:0;border-radius:10px;height:38px;padding:0 14px;font-weight:700;background:#fff;color:#1c1d22}
 .welcome{text-align:center;padding:22px 18px}
 .welcome p{margin:10px 0;text-align:left}
-.wicon{font-size:48px}
+.wicon{width:88px;height:88px;border-radius:20px;display:block;margin:0 auto}
 .wtitle{font-size:26px;text-transform:none;letter-spacing:0;color:var(--ink);margin:6px 0 4px}
 .dealpick{display:flex;flex-wrap:wrap;gap:8px}
 /* wider screens and sideways phones: player cards side by side */
@@ -202,7 +202,7 @@ const CARDS = [
 ];
 const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var(--p6)"];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 8;            // bump with version.json on every update
+const APP_VERSION = 9;            // bump with version.json on every update
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -253,7 +253,7 @@ function renderWelcome(){
   $("#btnRound").textContent = "Set up a game";
   $("#main").innerHTML = `
     <div class="card welcome">
-      <div class="wicon">🃏</div>
+      <img class="wicon" src="icon-192.png" alt="" width="88" height="88">
       <h2 class="wtitle">Welcome!</h2>
       <p>Keep score for Phase 10<sup>*</sup> without paper. After each hand, enter everyone's points and tick who made their phase. The app keeps the totals, tracks each person's phase and shows who deals next.</p>
       <p class="hint">Works without internet once it's on your home screen: in Safari tap Share, then Add to Home Screen. Scores stay on this phone.</p>
