@@ -146,6 +146,15 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 }
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 label.menuitem{cursor:pointer}
+a.menuitem{text-decoration:none;box-sizing:border-box}
+.about-head{padding:8px 2px 4px}
+.about-head img{width:64px;height:64px;border-radius:14px;display:block;margin-bottom:12px}
+.about-head b{display:block;font-size:20px;line-height:1.25}
+.about-head p{margin:6px 0 0;color:var(--muted);font-size:15px;line-height:1.45}
+.credit{margin-top:14px;font-size:13px;color:var(--muted)}
+.credit a,.banner a,.smallprint a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.banner .support{display:block;margin-top:8px;font-size:14px;opacity:.95}
+.smallprint{margin:18px 2px 0;color:var(--muted);font-size:13px;line-height:1.45}
 .pastebox{width:100%;min-height:220px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
   font:16px/1.4 ui-monospace,Menlo,monospace;padding:10px}
 .past{padding:12px 14px}
@@ -207,7 +216,13 @@ const CARDS = [
 ];
 const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var(--p6)"];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 10;            // bump with version.json on every update
+const APP_VERSION = 11;
+const LINKS = {
+  support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
+  shop: "https://nxlx.gumroad.com",
+  instagram: "https://instagram.com/nxlx.systems",
+  code: "https://github.com/nxlx-systems/nxlx-phase-scorekeeper"
+};            // bump with version.json on every update
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -263,6 +278,7 @@ function renderWelcome(){
       <p>Keep score for Phase 10<sup>*</sup> without paper. After each hand, enter everyone's points and tick who made their phase. The app keeps the totals, tracks each person's phase and shows who deals next.</p>
       <p class="hint">Works without internet once it's on your home screen: in Safari tap Share, then Add to Home Screen. Scores stay on this phone.</p>
       <p class="hint">* Phase 10 is a trademark of Mattel. This app is made by NXLX.Systems and is not affiliated with or endorsed by Mattel.</p>
+      <p class="credit">Made by Anthony Giglio · <a href="${LINKS.shop}" target="_blank" rel="noopener">NXLX.Systems</a></p>
     </div>
     ${state.past.length ? `<div class="card"><b>${state.past.length} past game${state.past.length>1?"s":""}</b> saved. Open Menu to see them.</div>` : ""}
     <button class="wide" id="wRestore">I have a backup to restore</button>`;
@@ -276,7 +292,7 @@ function render(){
   const w = winner(g);
   const rk = ranked(g);
   let h = "";
-  if (w) h += `<div class="banner"><b>${esc(w.name)} wins!</b>Finished phase 10 with ${w.total} points</div>`;
+  if (w) h += `<div class="banner"><b>${esc(w.name)} wins!</b>Finished phase 10 with ${w.total} points<a class="support" href="${LINKS.support}" target="_blank" rel="noopener">Enjoying it? Support the app</a></div>`;
   const d = nextDealer(g);
   if (!w) h += `<div class="card dealer"><div class="dicon">🃏</div>
       <div><div class="phasebadge">Round ${n+1} dealer</div><div class="pname">${esc(g.players[d])}</div>
@@ -452,8 +468,23 @@ $("#btnCountCancel").onclick = () => close("#sheetCount");
 $("#btnCountUse").onclick = () => { const pr = countProblem(); if (pr && !confirm(`${pr}\n\nUse ${countTotal()} points anyway?`)) return; draft.pts[countFor] = String(countTotal()); close("#sheetCount"); drawRound(); };
 
 /* ---------- menu & pages ---------- */
+function showAbout(){
+  const a = (href, title, sub) => `<a class="menuitem" href="${href}" target="_blank" rel="noopener">${title}<span>${sub}</span></a>`;
+  showPage("About", `
+    <div class="about-head">
+      <img src="icon-192.png" alt="" width="64" height="64">
+      <b>Made by Anthony Giglio</b>
+      <p>NXLX.Systems, Saskatoon. I'm an AV performer and VJ who builds tools for the stage, and sometimes sillier things, like this one.</p>
+    </div>
+    ${a(LINKS.support, "Support this app", "Pay what you want on Gumroad")}
+    ${a(LINKS.shop, "More from NXLX", "Stage tools and updates on Gumroad")}
+    ${a(LINKS.instagram, "Instagram", "@nxlx.systems")}
+    <p class="smallprint">Phase Ten Scorekeeper v${APP_VERSION}. The code is open to read on <a href="${LINKS.code}" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial licence. Your scores stay on this phone.</p>
+    <p class="smallprint">Phase 10 is a trademark of Mattel, Inc. This app is not affiliated with or endorsed by Mattel.</p>`);
+}
 function drawMenu(){
   $("#menuBody").innerHTML = `
+    <button class="menuitem" id="mAbout">About<span>Made by Anthony Giglio · NXLX.Systems</span></button>
     <button class="menuitem" id="mNew">New game<span>Keeps this game in Past games</span></button>
     <button class="menuitem" id="mPlayers">Players<span>Rename, add or remove</span></button>
     <button class="menuitem" id="mPhases">The 10 phases<span>Quick reference</span></button>
@@ -464,7 +495,7 @@ function drawMenu(){
     <input type="file" id="fileIn" class="vh">
     <button class="menuitem" id="mCopy">Copy backup as text<span>Paste it into Notes or a message to keep it</span></button>
     <button class="menuitem" id="mPaste">Restore from pasted text<span>Use this if picking a file does not work</span></button>
-    <p class="hint" style="margin-top:16px">Phase Ten Scorekeeper v${APP_VERSION} by NXLX.Systems. Phase 10 is a trademark of Mattel; this app is not affiliated with or endorsed by Mattel.</p>`;
+    <p class="hint" style="margin-top:16px">Phase Ten Scorekeeper v${APP_VERSION}. Phase 10 is a trademark of Mattel; this app is not affiliated with or endorsed by Mattel.</p>`;
   $("#mNew").onclick = () => { close("#sheetMenu"); startNew(); };
   if (!state.current) $("#mPlayers").style.display = "none";
   $("#mPlayers").onclick = () => showPlayers();
@@ -472,6 +503,7 @@ function drawMenu(){
       <h2>Card points</h2><div class="card">${CARDS.map(c=>`<div>${c.label}: <b>${c.v}</b></div>`).join("")}</div>`);
   $("#mPast").onclick = () => showPast();
   $("#mExport").onclick = exportData;
+  $("#mAbout").onclick = showAbout;
   $("#mUpdate").onclick = async () => {
     const r = await checkForUpdate();
     if (r === "offline") alert("You're offline. Connect to the internet and try again. Your scores are fine.");

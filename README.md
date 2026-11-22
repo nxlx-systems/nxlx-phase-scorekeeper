@@ -85,7 +85,8 @@ The code is shared under the **[PolyForm Noncommercial License 1.0.0](LICENSE.md
 ---
 
 <p align="center">
-  Made by <b>NXLX.Systems</b>
+  Made by <b>Anthony Giglio · NXLX.Systems</b>, Saskatoon<br>
+  <a href="https://nxlx.gumroad.com">Shop</a> · <a href="https://instagram.com/nxlx.systems">Instagram</a>
 </p>
 
 <sub>* Phase 10 is a trademark of Mattel, Inc. Phase Ten Scorekeeper is an independent score-keeping tool made by NXLX.Systems. It is not affiliated with, sponsored by or endorsed by Mattel. You need your own copy of the card game to play.</sub>
