@@ -13,7 +13,7 @@
   &nbsp;·&nbsp;
   <a href="#add-it-to-your-home-screen">Install it</a>
   &nbsp;·&nbsp;
-  <a href="https://anthonygiglio.gumroad.com">Support it on Gumroad</a>
+  <a href="https://nxlx.gumroad.com/l/phase-ten-scorekeeper">Support it on Gumroad</a>
 </p>
 
 <p align="center">
@@ -73,7 +73,7 @@ Everything is stored on your own device, in the browser's storage for this site.
 
 ## Support
 
-The app is free. If it saves you a pencil, you can [pay what you want on Gumroad](https://anthonygiglio.gumroad.com). Questions or ideas: open an [issue](https://github.com/nxlx-systems/nxlx-phase-scorekeeper/issues).
+The app is free. If it saves you a pencil, you can [pay what you want on Gumroad](https://nxlx.gumroad.com/l/phase-ten-scorekeeper). Questions or ideas: open an [issue](https://github.com/nxlx-systems/nxlx-phase-scorekeeper/issues).
 
 ## Licence
 
