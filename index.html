@@ -90,6 +90,11 @@ tr.tap{cursor:pointer}
 .chip{border:0;border-radius:12px;height:48px;padding:0 12px;font-size:14px;font-weight:700;background:var(--line);color:var(--ink)}
 .chip.out.on{background:var(--accent);color:#fff}
 .hint{color:var(--muted);font-size:13px;margin:4px 2px 0}
+.warn{color:var(--accent);font-size:14px;font-weight:600;margin:8px 2px 0}
+.warn:empty{display:none}
+.card.entry.bad{box-shadow:0 0 0 2px var(--accent) inset}
+.cardcount{text-align:center;font-size:16px;margin:-6px 0 12px;color:var(--muted)}
+.cardcount b{color:var(--ink)}
 .counter{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin:8px 0}
 .counter .lbl b{display:block}
 .counter .lbl span{color:var(--muted);font-size:13px}
@@ -202,7 +207,7 @@ const CARDS = [
 ];
 const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var(--p6)"];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 9;            // bump with version.json on every update
+const APP_VERSION = 10;            // bump with version.json on every update
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -330,6 +335,24 @@ function chooseDealer(){
 
 /* ---------- round entry ---------- */
 let draft = null; // {index, pts:[], made:[], out:[]}
+// Everyone holds 10 cards after each turn, and nobody can lay cards down before making their phase.
+// So a player who missed their phase ends the round with exactly 10 cards: 50 to 250 points.
+const HAND = 10, MIN_MISSED = HAND * 5, MAX_HAND = HAND * 25;
+function handProblem(i){
+  const raw = draft.pts[i], n = parseInt(raw, 10) || 0;
+  if (!draft.made[i]) {
+    if (raw === "") return `Missed their phase, so they still hold 10 cards. Enter their points (at least ${MIN_MISSED}).`;
+    if (n < MIN_MISSED) return `Missed their phase, so they still hold 10 cards: at least ${MIN_MISSED} points. ${n} is fewer than 10 cards.`;
+  }
+  if (n > MAX_HAND) return `${n} is more than 10 cards can add up to (${MAX_HAND} at most).`;
+  if (n % 5) return `Points come in 5s (cards are worth 5, 10, 15 or 25).`;
+  return null;
+}
+function showProblem(i){
+  const msg = handProblem(i);
+  const el = document.getElementById(`warn-${i}`); if (el) el.textContent = msg ? `⚠ ${msg}` : "";
+  const card = document.querySelector(`[data-entry="${i}"]`); if (card) card.classList.toggle("bad", !!msg);
+}
 function openRound(index){
   const g = state.current;
   const existing = index!=null ? g.rounds[index] : null;
@@ -357,7 +380,7 @@ function drawRound(){
     for (let r=0;r<upto;r++) if (g.rounds[r].made[i]) done++;
     const ph = Math.min(done+1,10);
     const isOut = draft.pts[i]==="0";
-    h += `<div class="card entry">
+    h += `<div class="card entry" data-entry="${i}">
       <div class="row1">
         <div class="pname"><span class="dot" style="background:${COLORS[i%6]}"></span>${esc(name)}
           <span class="pdesc" style="font-weight:400">· Phase ${ph}</span></div>
@@ -369,14 +392,16 @@ function drawRound(){
         <button class="chip" data-count="${i}">Count</button>
       </div>
       <p class="hint">${esc(PHASES[ph-1])}</p>
+      <p class="warn" id="warn-${i}" role="status"></p>
     </div>`;
   });
-  h += `<p class="hint">Points are the cards left in your hand. “Count” adds them up for you. Blank counts as 0.</p>`;
+  h += `<p class="hint">Points are the cards left in your hand. “Count” adds them up for you. Anyone who missed their phase still holds 10 cards.</p>`;
   if (draft.index!=null) h += `<button class="wide danger" id="btnDelRound">Delete this round</button>`;
   $("#roundBody").innerHTML = h;
   document.querySelectorAll("[data-made]").forEach(b => b.onclick = () => { const i=+b.dataset.made; draft.made[i]=!draft.made[i]; drawRound(); });
   document.querySelectorAll("[data-out]").forEach(b => b.onclick = () => { const i=+b.dataset.out; draft.pts[i]="0"; draft.made[i]=true; drawRound(); });
-  document.querySelectorAll("[data-pts]").forEach(inp => inp.oninput = () => { draft.pts[+inp.dataset.pts] = inp.value.replace(/[^0-9]/g,""); });
+  document.querySelectorAll("[data-pts]").forEach(inp => inp.oninput = () => { draft.pts[+inp.dataset.pts] = inp.value.replace(/[^0-9]/g,""); showProblem(+inp.dataset.pts); });
+  g.players.forEach((_,i) => showProblem(i));
   document.querySelectorAll("[data-count]").forEach(b => b.onclick = () => openCount(+b.dataset.count));
   const del = $("#btnDelRound");
   if (del) del.onclick = () => {
@@ -386,6 +411,8 @@ function drawRound(){
 }
 $("#btnSaveRound").onclick = () => {
   document.activeElement && document.activeElement.blur();
+  const issues = state.current.players.map((name,i) => { const m = handProblem(i); return m ? `• ${name}: ${m}` : null; }).filter(Boolean);
+  if (issues.length && !confirm(`Please check before saving:\n\n${issues.join("\n")}\n\nSave anyway?`)) return;
   const r = {pts: draft.pts.map(v => parseInt(v,10)||0), made: [...draft.made]};
   const g = state.current;
   if (draft.index==null){ r.dealer = nextDealer(g); g.rounds.push(r); g.dealerSet = null; }
@@ -401,8 +428,18 @@ function openCount(i){
   drawCount(); open("#sheetCount");
 }
 function countTotal(){ return CARDS.reduce((s,c) => s + counts[c.k]*c.v, 0); }
+function countCards(){ return CARDS.reduce((s,c) => s + counts[c.k], 0); }
+function countProblem(){
+  const n = countCards();
+  if (!draft.made[countFor] && n !== HAND) return `They missed their phase, so they should have 10 cards. You've counted ${n}.`;
+  if (n > HAND) return `That's ${n} cards. Nobody ends a round with more than 10.`;
+  return null;
+}
 function drawCount(){
-  let h = `<div class="total">${countTotal()}<div class="pts">points in hand</div></div>`;
+  const n = countCards(), pr = countProblem();
+  let h = `<div class="total">${countTotal()}<div class="pts">points in hand</div></div>
+    <div class="cardcount"><b>${n}</b> card${n===1?"":"s"}${draft.made[countFor] ? "" : " of 10"}</div>
+    <p class="warn" style="text-align:center">${pr ? "⚠ " + pr : ""}</p>`;
   CARDS.forEach(c => {
     h += `<div class="card counter"><div class="lbl"><b>${c.label}</b><span>${c.note}</span></div>
       <button data-dec="${c.k}" aria-label="One less">−</button><div class="n">${counts[c.k]}</div><button data-inc="${c.k}" aria-label="One more">+</button></div>`;
@@ -412,7 +449,7 @@ function drawCount(){
   document.querySelectorAll("[data-dec]").forEach(b => b.onclick = () => { counts[b.dataset.dec]=Math.max(0,counts[b.dataset.dec]-1); drawCount(); });
 }
 $("#btnCountCancel").onclick = () => close("#sheetCount");
-$("#btnCountUse").onclick = () => { draft.pts[countFor] = String(countTotal()); close("#sheetCount"); drawRound(); };
+$("#btnCountUse").onclick = () => { const pr = countProblem(); if (pr && !confirm(`${pr}\n\nUse ${countTotal()} points anyway?`)) return; draft.pts[countFor] = String(countTotal()); close("#sheetCount"); drawRound(); };
 
 /* ---------- menu & pages ---------- */
 function drawMenu(){

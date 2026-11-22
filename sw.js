@@ -2,7 +2,7 @@
 // The app files are saved on the phone and always opened from there (fast, works offline).
 // Updates only happen when the app asks for one (the "Update now" button), which clears
 // these saved files so the newest ones are downloaded. Scores are stored separately and are never touched.
-const CACHE = "phase10-v9";
+const CACHE = "phase10-v10";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
