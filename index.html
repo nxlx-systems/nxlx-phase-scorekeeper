@@ -216,7 +216,7 @@ const CARDS = [
 ];
 const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var(--p6)"];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 11;
+const APP_VERSION = 12;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -229,7 +229,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">"
 /* ---------- storage ---------- */
 function newGame(players){ return {id:Date.now(), started:new Date().toISOString(), players:[...players], rounds:[], ended:null}; }
 function load(){
-  // Existing scores on this phone are always kept. A first visit starts empty (welcome screen).
+  // Existing scores on this device are always kept. A first visit starts empty (welcome screen).
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") return {current: s.current || null, past: s.past || []}; } catch(e){}
   return {current:null, past:[]};
 }
@@ -276,7 +276,7 @@ function renderWelcome(){
       <img class="wicon" src="icon-192.png" alt="" width="88" height="88">
       <h2 class="wtitle">Welcome!</h2>
       <p>Keep score for Phase 10<sup>*</sup> without paper. After each hand, enter everyone's points and tick who made their phase. The app keeps the totals, tracks each person's phase and shows who deals next.</p>
-      <p class="hint">Works without internet once it's on your home screen: in Safari tap Share, then Add to Home Screen. Scores stay on this phone.</p>
+      <p class="hint">${esc(installHint())}</p>
       <p class="hint">* Phase 10 is a trademark of Mattel. This app is made by NXLX.Systems and is not affiliated with or endorsed by Mattel.</p>
       <p class="credit">Made by Anthony Giglio · <a href="${LINKS.shop}" target="_blank" rel="noopener">NXLX.Systems</a></p>
     </div>
@@ -468,6 +468,25 @@ $("#btnCountCancel").onclick = () => close("#sheetCount");
 $("#btnCountUse").onclick = () => { const pr = countProblem(); if (pr && !confirm(`${pr}\n\nUse ${countTotal()} points anyway?`)) return; draft.pts[countFor] = String(countTotal()); close("#sheetCount"); drawRound(); };
 
 /* ---------- menu & pages ---------- */
+// How to install, per platform. The welcome screen shows the one for this device; About shows all.
+const INSTALL = {
+  ios: "iPhone or iPad: open it in Safari, tap the Share button, then Add to Home Screen.",
+  android: "Android: open your browser's menu (⋮), then Install app or Add to Home screen.",
+  desktop: "Computer: in Chrome or Edge, use the install button in the address bar. In Safari on a Mac, choose File, then Add to Dock."
+};
+function platform(){
+  const ua = navigator.userAgent || "";
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "desktop";
+}
+function isInstalled(){
+  return (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+}
+function installHint(){
+  if (isInstalled()) return "Installed on this device, so it works without internet. Scores stay on this device.";
+  return `To use it without internet, install it. ${INSTALL[platform()]} Scores stay on this device.`;
+}
 function showAbout(){
   const a = (href, title, sub) => `<a class="menuitem" href="${href}" target="_blank" rel="noopener">${title}<span>${sub}</span></a>`;
   showPage("About", `
@@ -479,7 +498,8 @@ function showAbout(){
     ${a(LINKS.support, "Support this app", "Pay what you want on Gumroad")}
     ${a(LINKS.shop, "More from NXLX", "Stage tools and updates on Gumroad")}
     ${a(LINKS.instagram, "Instagram", "@nxlx.systems")}
-    <p class="smallprint">Phase Ten Scorekeeper v${APP_VERSION}. The code is open to read on <a href="${LINKS.code}" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial licence. Your scores stay on this phone.</p>
+    <p class="smallprint">Phase Ten Scorekeeper v${APP_VERSION}. The code is open to read on <a href="${LINKS.code}" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial licence. Your scores stay on this device.</p>
+    <p class="smallprint"><b>Install it</b> to use it without internet:<br>${INSTALL.ios}<br>${INSTALL.android}<br>${INSTALL.desktop}</p>
     <p class="smallprint">Phase 10 is a trademark of Mattel, Inc. This app is not affiliated with or endorsed by Mattel.</p>`);
 }
 function drawMenu(){
@@ -490,8 +510,8 @@ function drawMenu(){
     <button class="menuitem" id="mPhases">The 10 phases<span>Quick reference</span></button>
     <button class="menuitem" id="mPast">Past games<span>${state.past.length} saved</span></button>
     <button class="menuitem" id="mUpdate">Check for updates<span>You have version ${APP_VERSION}. Your scores are kept.</span></button>
-    <button class="menuitem" id="mExport">Back up scores<span>Saves a file you can keep in Files or iCloud</span></button>
-    <label class="menuitem" for="fileIn">Restore from backup<span>Pick a backup file from Files or iCloud</span></label>
+    <button class="menuitem" id="mExport">Back up scores<span>Saves a backup file to this device or your cloud storage</span></button>
+    <label class="menuitem" for="fileIn">Restore from backup<span>Pick a backup file from this device or your cloud storage</span></label>
     <input type="file" id="fileIn" class="vh">
     <button class="menuitem" id="mCopy">Copy backup as text<span>Paste it into Notes or a message to keep it</span></button>
     <button class="menuitem" id="mPaste">Restore from pasted text<span>Use this if picking a file does not work</span></button>
@@ -650,7 +670,7 @@ function restoreFromText(text){
   try { s = parseBackup(text); }
   catch(e){ alert("That isn't a scorekeeper backup (" + e.message + ")."); return; }
   const n = s.current.rounds.length;
-  if (!confirm(`Replace the scores on this phone with the backup? (${s.current.players.join(", ")}, ${n} round${n===1?"":"s"}, ${s.past.length} past game${s.past.length===1?"":"s"})`)) return;
+  if (!confirm(`Replace the scores on this device with the backup? (${s.current.players.join(", ")}, ${n} round${n===1?"":"s"}, ${s.past.length} past game${s.past.length===1?"":"s"})`)) return;
   state = s; save();
   document.querySelectorAll(".sheet.open").forEach(el => el.classList.remove("open"));
   render();

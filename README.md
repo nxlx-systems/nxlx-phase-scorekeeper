@@ -5,13 +5,13 @@
 <h1 align="center">Phase Ten Scorekeeper</h1>
 
 <p align="center">
-  <b>The score sheet for Phase 10<sup>*</sup>, on your phone. No paper, no pencil, no internet needed.</b>
+  <b>The score sheet for Phase 10<sup>*</sup>, on your phone, tablet or computer. No paper, no pencil, no internet needed.</b>
 </p>
 
 <p align="center">
   <a href="https://nxlx-systems.github.io/nxlx-phase-scorekeeper/"><b>Open the app</b></a>
   &nbsp;·&nbsp;
-  <a href="#add-it-to-your-home-screen">Install it</a>
+  <a href="#install-it">Install it</a>
   &nbsp;·&nbsp;
   <a href="https://nxlx.gumroad.com/l/phase-ten-scorekeeper">Support it on Gumroad</a>
 </p>
@@ -38,20 +38,28 @@
 | ✏️ **Fix mistakes** | Edit any past round from a clearly marked editing screen. |
 | 📚 **Past games** | Finished games are kept, with every round. |
 | 💾 **Backups** | Save your scores as a file, or copy them as text, and restore them on any phone. |
-| ✈️ **Works offline** | Once it's on your home screen it runs with no signal. |
-| 🌗 **Light and dark** | Follows your phone's setting. Works upright and sideways. |
-| 🔒 **Private** | Scores stay on your phone. No account, no tracking, no ads. |
+| ✈️ **Works offline** | Once it's installed it runs with no signal. |
+| 🌗 **Light and dark** | Follows your device's setting. Works upright and sideways. |
+| 🔒 **Private** | Scores stay on your device. No account, no tracking, no ads. |
 
-## Add it to your home screen
+## Install it
+
+It runs in any up-to-date web browser. Installing it adds an icon and lets it work with no internet.
 
 **iPhone or iPad**
 1. Open **[the app](https://nxlx-systems.github.io/nxlx-phase-scorekeeper/)** in **Safari**.
 2. Tap **Share**, then **Add to Home Screen**, then **Add**.
-3. Open it once from the new icon while online. From then on it works without internet.
 
 **Android**
-1. Open the app in **Chrome**.
-2. Tap the **⋮** menu, then **Add to Home screen** (or **Install app**).
+1. Open the app in your browser (Chrome, Firefox, Samsung Internet and others).
+2. Open the browser's menu (**⋮**), then **Install app** or **Add to Home screen**.
+
+**Computer (Windows, Mac, Linux, Chromebook)**
+- **Chrome or Edge:** click the install button at the right of the address bar, or choose **Install** in the browser's menu.
+- **Safari on a Mac:** choose **File**, then **Add to Dock**.
+- Any other browser: just bookmark it. It still works, and still keeps your scores.
+
+Whichever device you use, open it once while online after installing. From then on it works without internet.
 
 ## How to use it
 
@@ -72,7 +80,7 @@ The app checks for a newer version when you're online and shows an **Update avai
 
 ## Privacy
 
-Everything is stored on your own device, in the browser's storage for this site. Nothing is sent anywhere. If you delete the app or clear Safari's website data, the scores go with it, so use **Menu, then Back up scores** now and then.
+Everything is stored on your own device, in the browser's storage for this site. Nothing is sent anywhere. If you remove the app or clear your browser's website data, the scores go with it, so use **Menu, then Back up scores** now and then.
 
 ## Support
 
