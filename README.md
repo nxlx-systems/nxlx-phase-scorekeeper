@@ -28,19 +28,19 @@
 
 ## What it does
 
-| | |
+| Feature | What it does |
 |---|---|
-| 🏆 **Live scoreboard** | Everyone's phase, total points and the leader, sorted the way the rules rank players. |
-| ✅ **Fast round entry** | One tap for "made phase", one tap for "went out", type the rest. |
-| 🧮 **Card counter** | Tap in the cards left in a hand (1 to 9, 10 to 12, Skip, Wild) and it adds the points and counts the cards for you. |
-| 🚦 **Catches mistakes** | A player who missed their phase still holds 10 cards, so the app flags anything under 50 points. It also flags points that aren't in 5s and totals no hand can reach. |
-| 🃏 **Dealer tracking** | Shows who deals and who plays first, and passes the deal each round. |
-| ✏️ **Fix mistakes** | Edit any past round from a clearly marked editing screen. |
-| 📚 **Past games** | Finished games are kept, with every round. |
-| 💾 **Backups** | Save your scores as a file, or copy them as text, and restore them on any phone. |
-| ✈️ **Works offline** | Once it's installed it runs with no signal. |
-| 🌗 **Light and dark** | Follows your device's setting. Works upright and sideways. |
-| 🔒 **Private** | Scores stay on your device. No account, no tracking, no ads. |
+| **Live scoreboard** | Everyone's phase, total points and the leader, sorted the way the rules rank players. |
+| **Fast round entry** | One tap for "made phase", one tap for "went out", type the rest. |
+| **Card counter** | Tap in the cards left in a hand (1 to 9, 10 to 12, Skip, Wild) and it adds the points and counts the cards for you. |
+| **Catches mistakes** | A player who missed their phase still holds 10 cards, so the app flags anything under 50 points. It also flags points that aren't in 5s and totals no hand can reach. |
+| **Dealer tracking** | Shows who deals and who plays first, and passes the deal each round. |
+| **Fix mistakes** | Edit any past round from a clearly marked editing screen. |
+| **Past games** | Finished games are kept, with every round. |
+| **Backups** | Save your scores as a file, or copy them as text, and restore them on any phone. |
+| **Works offline** | Once it's installed it runs with no signal. |
+| **Light and dark** | Follows your device's setting. Works upright and sideways. |
+| **Private** | Scores stay on your device. No account, no tracking, no ads. |
 
 ## Install it
 
