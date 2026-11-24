@@ -37,7 +37,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
 /* Solid strips under the clock and behind the Score round button, so the list slides away
    underneath them instead of showing through. The bottom one fades in over its top edge. */
-body::before,body::after{content:"";position:fixed;left:0;right:0;z-index:4;pointer-events:none}
+body::before,body::after{content:"";position:fixed;left:0;right:0;z-index:4}
+/* the strips take taps themselves, so nothing hidden behind them can be pressed by accident */
 body::before{top:0;height:env(safe-area-inset-top);background:var(--bg)}
 body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + 92px);
   background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 20px)}
@@ -810,7 +811,6 @@ function showUpdateBar(v){
 }
 async function applyUpdate(v){
   if (!confirm(`Update to version ${v.version}? Your scores stay exactly as they are.`)) return;
-  // Safety copy of the scores before anything changes.
   // Save the scores first. Updating reloads the page from what is saved, so if this device is
   // not saving, stop here: reloading would lose every round that is only on screen.
   saveWarned = true;                                   // show the message below, not the general one
@@ -821,8 +821,6 @@ async function applyUpdate(v){
   // Updating clears the saved app files and downloads new ones. With no connection that would
   // leave nothing to open, so check first.
   if ((await checkForUpdate()) === "offline") { alert("You're offline, so the update can't download. Nothing was changed. Try again when you're connected."); return; }
-  try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
-  catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
   // Download every app file first. Only when all of them arrived, and the page really is this app,
   // replace the saved copy. If anything fails, the current version stays and still works offline.
   if (window.caches) {
@@ -833,10 +831,12 @@ async function applyUpdate(v){
       got = await Promise.all(files.map(async f => {
         const res = await fetch(f + "?fresh=" + t, {cache: "no-store"});   // ?fresh= goes past the saved copy
         if (!res.ok) throw new Error(f + " " + res.status);
-        if (f === "./" || f === "index.html") { const txt = await res.clone().text(); if (!txt.includes("const APP_VERSION")) throw new Error("not the app"); }
+        if (f === "./" || f === "index.html") { const txt = await res.clone().text(); const m = txt.match(/const APP_VERSION = (\d+);/); if (!m || Number(m[1]) < Number(v.version)) throw new Error("not the new version"); }
         return [f, res];
       }));
     } catch(e){ alert("The update didn't finish downloading, so nothing was changed. Try again when the connection is better."); return; }
+    try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
+    catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
     try {
       const app = await caches.open("phase10-app");
       for (const [f, res] of got) await app.put(f, res);
