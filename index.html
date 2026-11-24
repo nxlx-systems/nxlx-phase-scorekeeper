@@ -221,7 +221,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 13;
+const APP_VERSION = 14;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -239,7 +239,19 @@ function load(){
   return {current:null, past:[]};
 }
 let state = load();
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+// If the device refuses to save (storage full, or blocked in private browsing), say so once
+// instead of failing silently, so nobody finds out after the game that nothing was kept.
+let saveWarned = false;
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); saveWarned = false; return true; }
+  catch(e){
+    if (!saveWarned) {
+      saveWarned = true;
+      alert("This device would not save the scores. Its storage may be full, or private browsing may be on.\n\nThe game is still on screen. Use Menu, then Back up scores, to keep a copy.");
+    }
+    return false;
+  }
+}
 
 /* ---------- game maths ---------- */
 function stats(g){
@@ -365,6 +377,8 @@ function handProblem(i){
     if (raw === "") return `Missed their phase, so they still hold 10 cards. Enter their points (at least ${MIN_MISSED}).`;
     if (n < MIN_MISSED) return `Missed their phase, so they still hold 10 cards: at least ${MIN_MISSED} points. ${n} is fewer than 10 cards.`;
   }
+  // A blank would be saved as 0, which reads as "went out". Make it a choice, not an accident.
+  if (raw === "") return `No points entered. Enter the cards left in their hand, or tap Went out if they have none.`;
   if (n > MAX_HAND) return `${n} is more than 10 cards can add up to (${MAX_HAND} at most).`;
   if (n % 5) return `Points come in 5s (cards are worth 5, 10, 15 or 25).`;
   return null;
@@ -507,11 +521,17 @@ function showAbout(){
     <p class="smallprint"><b>Install it</b> to use it without internet:<br>${INSTALL.ios}<br>${INSTALL.android}<br>${INSTALL.desktop}</p>
     <p class="smallprint">Phase 10 is a trademark of Mattel, Inc. This app is not affiliated with or endorsed by Mattel.</p>`);
 }
+// The copy of the scores that "Update now" saves before it changes anything (only if it held a game).
+function safetyCopy(){
+  try { const s = JSON.parse(localStorage.getItem("phase10.beforeUpdate")); return s && s.state && s.state.current ? s : null; }
+  catch(e){ return null; }
+}
 function drawMenu(){
+  const sc = safetyCopy();
   $("#menuBody").innerHTML = `
     <button class="menuitem" id="mAbout">About<span>Made by Anthony Giglio · NXLX.Systems</span></button>
     <button class="menuitem" id="mNew">New game<span>Keeps this game in Past games</span></button>
-    <button class="menuitem" id="mPlayers">Players<span>Rename, add or remove</span></button>
+    <button class="menuitem" id="mPlayers">Players<span>Rename, change seats, add or remove</span></button>
     <button class="menuitem" id="mPhases">The 10 phases<span>Quick reference</span></button>
     <button class="menuitem" id="mPast">Past games<span>${state.past.length} saved</span></button>
     <button class="menuitem" id="mUpdate">Check for updates<span>You have version ${APP_VERSION}. Your scores are kept.</span></button>
@@ -520,6 +540,7 @@ function drawMenu(){
     <input type="file" id="fileIn" class="vh">
     <button class="menuitem" id="mCopy">Copy backup as text<span>Paste it into Notes or a message to keep it</span></button>
     <button class="menuitem" id="mPaste">Restore from pasted text<span>Use this if picking a file does not work</span></button>
+    ${sc ? `<button class="menuitem" id="mSafety">Restore the scores from before the last update<span>A safety copy saved on ${esc(new Date(sc.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}))}, just before updating. Use it if anything looks wrong.</span></button>` : ""}
     <p class="hint" style="margin-top:16px">Phase 10 Scorekeeper v${APP_VERSION}. Phase 10 is a trademark of Mattel; this app is not affiliated with or endorsed by Mattel.</p>`;
   $("#mNew").onclick = () => { close("#sheetMenu"); startNew(); };
   if (!state.current) $("#mPlayers").style.display = "none";
@@ -537,6 +558,7 @@ function drawMenu(){
   };
   $("#fileIn").onchange = importData;
   $("#mCopy").onclick = copyBackup;
+  if (sc) $("#mSafety").onclick = () => restoreFromText(JSON.stringify(sc.state));   // asks before replacing
   $("#mPaste").onclick = () => {
     showPage("Restore from text", `<p class="hint">Paste the backup text below, then tap Restore.</p>
       <textarea id="pasteBox" class="pastebox" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>`,
