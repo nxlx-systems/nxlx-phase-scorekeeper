@@ -1,6 +1,6 @@
 {
-  "name": "Phase Ten Scorekeeper",
-  "short_name": "Phase Ten",
+  "name": "Phase 10 Scorekeeper",
+  "short_name": "Phase 10",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
