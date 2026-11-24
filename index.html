@@ -762,8 +762,15 @@ function showUpdateBar(v){
 async function applyUpdate(v){
   if (!confirm(`Update to version ${v.version}? Your scores stay exactly as they are.`)) return;
   // Safety copy of the scores before anything changes.
-  try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); } catch(e){}
-  save();
+  // Save the scores first. Updating reloads the page from what is saved, so if this device is
+  // not saving, stop here: reloading would lose every round that is only on screen.
+  saveWarned = true;                                   // show the message below, not the general one
+  if (!save()) {
+    alert("Update stopped: this device is not saving scores right now (storage may be full, or private browsing may be on).\n\nUse Menu, then Back up scores, before updating.");
+    return;
+  }
+  try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
+  catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
   try {
     // Clear only the saved app files (not the scores) so the newest ones download.
     const ks = await caches.keys();
