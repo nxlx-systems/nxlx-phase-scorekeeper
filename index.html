@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Phase Ten Scorekeeper</title>
+<title>Phase 10 Scorekeeper</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Phase Ten">
+<meta name="apple-mobile-web-app-title" content="Phase 10">
 <meta name="theme-color" content="#14161c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -36,7 +36,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
   font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
 header{display:flex;align-items:center;gap:8px;padding:14px var(--gr) 6px var(--gl)}
-header h1{font-size:28px;margin:0;flex:1;letter-spacing:-.5px}
+/* shrinks a little on narrow phones so "Phase 10 Scorekeeper" stays on one line beside Menu */
+header h1{font-size:clamp(18px, 5.2vw, 28px);margin:0;flex:1;min-width:0;letter-spacing:-.5px;line-height:1.15}
 header h1 small{display:block;font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
 .iconbtn{border:0;background:var(--card);color:var(--ink);border-radius:12px;height:40px;min-width:40px;
   padding:0 12px;font-size:15px;font-weight:600;box-shadow:0 0 0 1px var(--line) inset}
@@ -109,6 +110,7 @@ tr.tap{cursor:pointer}
 .namerow input{flex:1;min-width:0;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);
   color:var(--ink);font-size:18px;padding:0 12px}
 .namerow button{width:48px;border:0;border-radius:12px;background:var(--line);color:var(--ink);font-size:20px}
+.namerow button:disabled{opacity:.35}
 ol.phases{padding-left:28px;margin:8px 0}
 ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 .menuitem{display:block;width:100%;text-align:left;font-weight:400;line-height:1.35;border:0;background:var(--card);color:var(--ink);font-size:17px;
@@ -164,7 +166,7 @@ a.menuitem{text-decoration:none;box-sizing:border-box}
 </head>
 <body>
 <header>
-  <h1>Phase Ten<small id="sub"></small></h1>
+  <h1>Phase 10 Scorekeeper<small id="sub"></small></h1>
   <button class="iconbtn" id="btnMenu" aria-label="Menu">Menu</button>
 </header>
 <div id="upd"></div>
@@ -215,8 +217,11 @@ const CARDS = [
   {k:"wild", label:"Wild", note:"25 points each", v:25}
 ];
 const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var(--p6)"];
+// Each player keeps their colour when seats are reordered. Games saved before v13 have no
+// colours list, so seat 1 gets colour 1 and so on, exactly as before.
+const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 12;
+const APP_VERSION = 13;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -269,7 +274,7 @@ function winner(g){
 
 /* ---------- main screen ---------- */
 function renderWelcome(){
-  $("#sub").textContent = "Score keeper";
+  $("#sub").textContent = "Works without internet";
   $("#btnRound").textContent = "Set up a game";
   $("#main").innerHTML = `
     <div class="card welcome">
@@ -304,12 +309,12 @@ function render(){
     h += `<div class="card player">
       <div class="rank ${lead?"first":""}">${idx+1}</div>
       <div>
-        <div class="pname"><span class="dot" style="background:${COLORS[p.i%6]}"></span>${esc(p.name)}${p.i===d && !w ? `<span class="dtag">Dealer</span>` : ""}</div>
+        <div class="pname"><span class="dot" style="background:${colorOf(g, p.i)}"></span>${esc(p.name)}${p.i===d && !w ? `<span class="dtag">Dealer</span>` : ""}</div>
         <div class="phasebadge">${p.finished ? "All 10 done" : "Phase "+p.phase}</div>
         <div class="pdesc">${p.finished ? "Finished" : esc(PHASES[p.phase-1])}</div>
       </div>
       <div class="right"><div class="big">${p.total}</div><div class="pts">points</div></div>
-      <div class="bar"><i style="width:${p.done*10}%;background:${COLORS[p.i%6]}"></i></div>
+      <div class="bar"><i style="width:${p.done*10}%;background:${colorOf(g, p.i)}"></i></div>
     </div>`;
   });
   h += `</div>`;
@@ -398,7 +403,7 @@ function drawRound(){
     const isOut = draft.pts[i]==="0";
     h += `<div class="card entry" data-entry="${i}">
       <div class="row1">
-        <div class="pname"><span class="dot" style="background:${COLORS[i%6]}"></span>${esc(name)}
+        <div class="pname"><span class="dot" style="background:${colorOf(g, i)}"></span>${esc(name)}
           <span class="pdesc" style="font-weight:400">· Phase ${ph}</span></div>
         <button class="toggle ${draft.made[i]?"on":""}" data-made="${i}">${draft.made[i]?"✓ Made phase":"Made phase?"}</button>
       </div>
@@ -498,7 +503,7 @@ function showAbout(){
     ${a(LINKS.support, "Support this app", "Pay what you want on Gumroad")}
     ${a(LINKS.shop, "More from NXLX", "Stage tools and updates on Gumroad")}
     ${a(LINKS.instagram, "Instagram", "@nxlx.systems")}
-    <p class="smallprint">Phase Ten Scorekeeper v${APP_VERSION}. The code is open to read on <a href="${LINKS.code}" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial licence. Your scores stay on this device.</p>
+    <p class="smallprint">Phase 10 Scorekeeper v${APP_VERSION}. The code is open to read on <a href="${LINKS.code}" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial licence. Your scores stay on this device.</p>
     <p class="smallprint"><b>Install it</b> to use it without internet:<br>${INSTALL.ios}<br>${INSTALL.android}<br>${INSTALL.desktop}</p>
     <p class="smallprint">Phase 10 is a trademark of Mattel, Inc. This app is not affiliated with or endorsed by Mattel.</p>`);
 }
@@ -515,7 +520,7 @@ function drawMenu(){
     <input type="file" id="fileIn" class="vh">
     <button class="menuitem" id="mCopy">Copy backup as text<span>Paste it into Notes or a message to keep it</span></button>
     <button class="menuitem" id="mPaste">Restore from pasted text<span>Use this if picking a file does not work</span></button>
-    <p class="hint" style="margin-top:16px">Phase Ten Scorekeeper v${APP_VERSION}. Phase 10 is a trademark of Mattel; this app is not affiliated with or endorsed by Mattel.</p>`;
+    <p class="hint" style="margin-top:16px">Phase 10 Scorekeeper v${APP_VERSION}. Phase 10 is a trademark of Mattel; this app is not affiliated with or endorsed by Mattel.</p>`;
   $("#mNew").onclick = () => { close("#sheetMenu"); startNew(); };
   if (!state.current) $("#mPlayers").style.display = "none";
   $("#mPlayers").onclick = () => showPlayers();
@@ -603,22 +608,50 @@ $("#pageBack").onclick = () => close("#sheetPage");
 
 function showPlayers(){
   const g = state.current, locked = g.rounds.length>0;
-  let names = [...g.players];
+  // One entry per seat, in seating order. "from" is the player's old seat (-1 for someone new),
+  // so their scores, dealing history and colour can follow them when seats are moved.
+  let seats = g.players.map((name,i) => ({name, from:i, color: (g.colors && g.colors[i] != null) ? g.colors[i] : i}));
+  const freeColor = () => [0,1,2,3,4,5].find(c => !seats.some(s => s.color === c)) ?? 0;
+  const move = (i, by) => { const j = i + by; if (j < 0 || j >= seats.length) return; [seats[i], seats[j]] = [seats[j], seats[i]]; draw(); };
   const draw = () => {
-    let h = names.map((n,i)=>`<div class="namerow"><input value="${esc(n)}" data-name="${i}" placeholder="Name">${
-      locked?"":`<button data-rm="${i}" aria-label="Remove">✕</button>`}</div>`).join("");
+    let h = `<p class="hint">Seating order, going left around the table. The deal passes in this order.</p>`;
+    h += seats.map((s,i)=>`<div class="namerow"><input value="${esc(s.name)}" data-name="${i}" placeholder="Name">
+      <button data-up="${i}" aria-label="Move ${esc(s.name || "player")} up" ${i===0?"disabled":""}>↑</button>
+      <button data-down="${i}" aria-label="Move ${esc(s.name || "player")} down" ${i===seats.length-1?"disabled":""}>↓</button>${
+      locked || seats.length<=2 ? "" : `<button data-rm="${i}" aria-label="Remove ${esc(s.name || "player")}">✕</button>`}</div>`).join("");
     h += locked
-      ? `<p class="hint">You can rename players now. To add or remove players, start a new game first.</p>`
-      : `<button class="wide" id="addP">Add player</button>`;
+      ? `<p class="hint">Use ↑ and ↓ if people are sitting in a different order. Scores move with each player, and the same person still deals next. To add or remove players, start a new game first.</p>`
+      : (seats.length < 6 ? `<button class="wide" id="addP">Add player</button>` : "");
     $("#pageBody").innerHTML = h;
-    document.querySelectorAll("[data-name]").forEach(inp => inp.oninput = () => names[+inp.dataset.name] = inp.value);
-    document.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { if (names.length>2){ names.splice(+b.dataset.rm,1); draw(); } });
-    const add = $("#addP"); if (add) add.onclick = () => { if (names.length<6){ names.push(""); draw(); } };
+    document.querySelectorAll("[data-name]").forEach(inp => inp.oninput = () => seats[+inp.dataset.name].name = inp.value);
+    document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => move(+b.dataset.up, -1));
+    document.querySelectorAll("[data-down]").forEach(b => b.onclick = () => move(+b.dataset.down, 1));
+    document.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { if (seats.length>2){ seats.splice(+b.dataset.rm,1); draw(); } });
+    const add = $("#addP"); if (add) add.onclick = () => { if (seats.length<6){ seats.push({name:"", from:-1, color:freeColor()}); draw(); } };
   };
   showPage("Players", "", "Save", () => {
-    const clean = names.map((n,i)=>n.trim() || `Player ${i+1}`);
-    g.players = clean;
-    if (!locked) g.rounds = [];
+    const order = seats.map(s => s.from);              // order[newSeat] = oldSeat
+    const newSeat = old => order.indexOf(old);          // -1 if that player was removed
+    const moved = order.some((o,i) => o !== i) || order.length !== g.players.length;
+    const nd = nextDealer(g);                            // who deals next, before anything moves
+    if (locked && moved) {
+      g.rounds.forEach((r, ri) => {
+        // Pin who dealt each round first: rounds saved by early versions have no dealer and
+        // would otherwise be worked out from the new seating, naming the wrong person.
+        r.dealer = newSeat(dealerOf(g, ri));
+        r.pts = order.map(o => r.pts[o]);
+        r.made = order.map(o => r.made[o]);
+      });
+      g.firstDealer = Math.max(0, newSeat(g.firstDealer || 0));
+      g.dealerSet = newSeat(nd);                         // keep the same person on the next deal
+    } else if (!locked) {
+      // No rounds yet: whoever was going to deal still deals first (if they are still playing).
+      g.firstDealer = Math.max(0, newSeat(nd));
+      g.dealerSet = null;
+      g.rounds = [];
+    }
+    g.players = seats.map((s,i) => s.name.trim() || `Player ${i+1}`);
+    g.colors = seats.map(s => s.color);
     save(); close("#sheetPage"); render();
   });
   draw();
@@ -647,7 +680,7 @@ async function exportData(){
   const name = `phase10-backup-${new Date().toISOString().slice(0,10)}.json`;
   const file = new File([text], name, {type:"application/json"});
   try {
-    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Phase Ten Scorekeeper backup"}); return; }
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Phase 10 Scorekeeper backup"}); return; }
   } catch(e){ if (e.name==="AbortError") return; }
   const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; a.click();
 }

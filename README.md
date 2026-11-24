@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="icon-192.png" width="96" height="96" alt="Phase Ten Scorekeeper icon">
+  <img src="icon-192.png" width="96" height="96" alt="Phase 10 Scorekeeper icon">
 </p>
 
-<h1 align="center">Phase Ten Scorekeeper</h1>
+<h1 align="center">Phase 10 Scorekeeper</h1>
 
 <p align="center">
   <b>The score sheet for Phase 10<sup>*</sup>, on your phone, tablet or computer. No paper, no pencil, no internet needed.</b>
@@ -35,9 +35,10 @@
 | **Card counter** | Tap in the cards left in a hand (1 to 9, 10 to 12, Skip, Wild) and it adds the points and counts the cards for you. |
 | **Catches mistakes** | A player who missed their phase still holds 10 cards, so the app flags anything under 50 points. It also flags points that aren't in 5s and totals no hand can reach. |
 | **Dealer tracking** | Shows who deals and who plays first, and passes the deal each round. |
+| **Seating order** | Change the order players sit in at any time, even mid-game. Scores and colours move with each player, and the same person still deals next. |
 | **Fix mistakes** | Edit any past round from a clearly marked editing screen. |
 | **Past games** | Finished games are kept, with every round. |
-| **Backups** | Save your scores as a file, or copy them as text, and restore them on any phone. |
+| **Backups** | Save your scores as a file, or copy them as text, and restore them on any device. |
 | **Works offline** | Once it's installed it runs with no signal. |
 | **Light and dark** | Follows your device's setting. Works upright and sideways. |
 | **Private** | Scores stay on your device. No account, no tracking, no ads. |
@@ -88,7 +89,7 @@ The app is free. If it saves you a pencil, you can [pay what you want on Gumroad
 
 ## Licence
 
-The code is shared under the **[PolyForm Noncommercial License 1.0.0](LICENSE.md)**. You may use, study and change it for any noncommercial purpose, including personal use and use by charities, schools and public bodies. Selling it, or using it to make money, needs written permission from NXLX.Systems. The name Phase Ten Scorekeeper and the app icon are not covered by the licence.
+The code is shared under the **[PolyForm Noncommercial License 1.0.0](LICENSE.md)**. You may use, study and change it for any noncommercial purpose, including personal use and use by charities, schools and public bodies. Selling it, or using it to make money, needs written permission from NXLX.Systems. The name Phase 10 Scorekeeper and the app icon are not covered by the licence.
 
 ---
 
@@ -97,4 +98,4 @@ The code is shared under the **[PolyForm Noncommercial License 1.0.0](LICENSE.md
   <a href="https://nxlx.gumroad.com">Shop</a> · <a href="https://instagram.com/nxlx.systems">Instagram</a>
 </p>
 
-<sub>* Phase 10 is a trademark of Mattel, Inc. Phase Ten Scorekeeper is an independent score-keeping tool made by NXLX.Systems. It is not affiliated with, sponsored by or endorsed by Mattel. You need your own copy of the card game to play.</sub>
+<sub>* Phase 10 is a trademark of Mattel, Inc. Phase 10 Scorekeeper is an independent score-keeping tool made by NXLX.Systems. It is not affiliated with, sponsored by or endorsed by Mattel. You need your own copy of the card game to play.</sub>
