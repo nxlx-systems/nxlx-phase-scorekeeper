@@ -35,6 +35,15 @@ button,input,textarea,select,label{font-family:inherit;line-height:inherit}
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
+/* Solid strips under the clock and behind the Score round button, so the list slides away
+   underneath them instead of showing through. The bottom one fades in over its top edge. */
+body::before,body::after{content:"";position:fixed;left:0;right:0;z-index:4}
+/* the strips take taps themselves, so nothing hidden behind them can be pressed by accident */
+body::before{top:0;height:env(safe-area-inset-top);background:var(--bg)}
+body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + 92px);
+  background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 20px)}
+/* while another page is open, the main screen is held still (see syncScrollLock) */
+body.locked{position:fixed;left:0;right:0;overflow:hidden}
 header{display:flex;align-items:center;gap:8px;padding:14px var(--gr) 6px var(--gl)}
 /* shrinks a little on narrow phones so "Phase 10 Scorekeeper" stays on one line beside Menu */
 header h1{font-size:clamp(18px, 5.2vw, 28px);margin:0;flex:1;min-width:0;letter-spacing:-.5px;line-height:1.15}
@@ -47,7 +56,10 @@ main,#upd{padding:0 var(--gr) 0 var(--gl)}
 .rank{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;
   background:var(--line);color:var(--ink)}
 .rank.first{background:var(--gold);color:#fff}
-.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:6px}
+.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:4px 6px;flex-wrap:wrap;min-width:0;overflow-wrap:anywhere}
+/* long names wrap instead of pushing points and buttons off the screen */
+.player>div{min-width:0}
+.dtag{flex:none}
 .dot{width:10px;height:10px;border-radius:50%;flex:none}
 .pdesc{color:var(--muted);font-size:14px}
 .phasebadge{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
@@ -61,6 +73,9 @@ main,#upd{padding:0 var(--gr) 0 var(--gl)}
   box-shadow:0 8px 24px rgba(0,0,0,.25)}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:22px 2px 6px}
 table{width:100%;border-collapse:collapse;font-size:15px}
+/* with many players the rounds table scrolls sideways inside its card, not the whole page */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tablewrap th{white-space:nowrap}
 th,td{padding:8px 4px;text-align:center;border-bottom:1px solid var(--line)}
 th{font-size:13px;color:var(--muted);font-weight:600}
 td.r{color:var(--muted);width:34px}
@@ -76,12 +91,13 @@ tr.tap{cursor:pointer}
 .sheet.open{display:flex}
 .sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) var(--gr) 10px var(--gl);
   border-bottom:1px solid var(--line);background:var(--card)}
-.sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center}
-.sheet .body{flex:1;overflow:auto;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
+.sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center;min-width:0;overflow-wrap:anywhere}
+.sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
 .link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
 .link.l{text-align:left}.link.r{text-align:right}
 .entry .row1{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.entry .row1 .pname{flex:1}
+.entry .row1 .pname{flex:1;flex-wrap:wrap}
+.entry .row1 .toggle{flex:none}
 .toggle{border:0;border-radius:12px;height:44px;padding:0 14px;font-size:15px;font-weight:700;
   background:var(--line);color:var(--ink)}
 .toggle.on{background:var(--good);color:#fff}
@@ -117,6 +133,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
   padding:16px;border-radius:14px;margin:8px 0;box-shadow:0 0 0 1px var(--line) inset}
 .menuitem span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .dealer{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.dealer>div{min-width:0;overflow-wrap:anywhere}
 .dicon{font-size:28px;width:30px;text-align:center}
 .dtag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--ink);color:var(--bg);
   border-radius:6px;padding:2px 6px;margin-left:4px}
@@ -137,6 +154,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 .wicon{width:88px;height:88px;border-radius:20px;display:block;margin:0 auto}
 .wtitle{font-size:26px;text-transform:none;letter-spacing:0;color:var(--ink);margin:6px 0 4px}
 .dealpick{display:flex;flex-wrap:wrap;gap:8px}
+.dealpick .toggle{max-width:100%;overflow-wrap:anywhere;height:auto;min-height:44px}
 /* wider screens and sideways phones: player cards side by side */
 .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));column-gap:10px}
 /* sideways phone (short screen): slimmer header and bottom button */
@@ -145,6 +163,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
   header h1{font-size:22px}
   .cta{height:46px;font-size:16px;bottom:calc(env(safe-area-inset-bottom) + 8px)}
   body{padding-bottom:calc(env(safe-area-inset-bottom) + 66px)}
+  body::after{height:calc(env(safe-area-inset-bottom) + 68px)}
 }
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 label.menuitem{cursor:pointer}
@@ -221,7 +240,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 14;
+const APP_VERSION = 15;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -242,8 +261,26 @@ let state = load();
 // If the device refuses to save (storage full, or blocked in private browsing), say so once
 // instead of failing silently, so nobody finds out after the game that nothing was kept.
 let saveWarned = false;
+// The app can be open in two places at once (two tabs, or the installed app and a tab). Each keeps
+// its own copy on screen, so before this one saves, and whenever it comes back into view, it takes
+// up any newer scores the other one saved instead of writing its older copy over them.
+let lastSaved = null; try { lastSaved = localStorage.getItem(KEY); } catch(e){}              // what this window last read or wrote
+function newerElsewhere(){ try { const now = localStorage.getItem(KEY); return now !== lastSaved ? now : null; } catch(e){ return null; } }
+function takeNewer(fromSave){
+  if (newerElsewhere() == null) return false;
+  state = load(); lastSaved = localStorage.getItem(KEY);
+  document.querySelectorAll(".sheet.open").forEach(el => el.classList.remove("open"));
+  render();
+  alert(fromSave
+    ? "The scores were changed in another window. This screen now shows those scores, and your last change here was not saved. Please make it again."
+    : "The scores were changed in another window, so this screen now shows the latest scores.");
+  return true;
+}
+window.addEventListener("storage", e => { if (e.key === KEY || e.key === null) takeNewer(false); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) takeNewer(false); });
 function save(){
-  try { localStorage.setItem(KEY, JSON.stringify(state)); saveWarned = false; return true; }
+  if (takeNewer(true)) return true;                          // another window saved first: keep theirs
+  try { const text = JSON.stringify(state); localStorage.setItem(KEY, text); lastSaved = text; saveWarned = false; return true; }
   catch(e){
     if (!saveWarned) {
       saveWarned = true;
@@ -333,7 +370,7 @@ function render(){
   h += `<div class="sechead"><h2>Rounds</h2>${n ? `<button class="chip small" id="btnEditRounds">Edit a round</button>` : ""}</div>`;
   if (!n) h += `<div class="card empty">No rounds yet. Tap “Score round” after each hand.</div>`;
   else {
-    h += `<div class="card" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    h += `<div class="card tablewrap" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
     g.rounds.forEach((r,ri) => {
       const rd = dealerOf(g, ri);
       h += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>
@@ -350,7 +387,7 @@ function pickRoundToEdit(){
   const g = state.current;
   const list = g.rounds.map((r,ri) => ({r,ri})).reverse().map(({r,ri}) =>
     `<button class="menuitem" data-edit="${ri}"><b>Round ${ri+1}</b>${ri===g.rounds.length-1?" (last round)":""}
-      <span>${g.players.map((p,i)=>`${esc(p)} ${r.pts[i]}${r.made[i]?" ✓":""}`).join(" · ")}</span></button>`).join("");
+      <span>${g.players.map((p,i)=>`${esc(p)} ${Number(r.pts[i])||0}${r.made[i]?" ✓":""}`).join(" · ")}</span></button>`).join("");
   showPage("Which round?", `<p class="hint">Pick the round you want to change. ✓ means they made their phase.</p>${list}`);
   document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { close("#sheetPage"); openRound(+b.dataset.edit); });
 }
@@ -408,7 +445,7 @@ function drawRound(){
   const g = state.current, st = stats(g);
   let h = "";
   if (draft.index!=null) h += `<div class="editwarn"><b>You are changing round ${draft.index+1}, which was already played.</b>
-      ${g.players[dealerOf(g, draft.index)]} dealt it. Tap Cancel to leave it as it was.</div>`;
+      ${esc(g.players[dealerOf(g, draft.index)])} dealt it. Tap Cancel to leave it as it was.</div>`;
   g.players.forEach((name,i) => {
     // phase they were attempting in this round
     let done = 0; const upto = draft.index==null ? g.rounds.length : draft.index;
@@ -603,7 +640,9 @@ function openSetup(names, dealer){
       };
     });
     document.querySelectorAll("[data-srm]").forEach(b => b.onclick = () => {
-      list.splice(+b.dataset.srm,1); if (first >= list.length) first = 0; draw(); });
+      const rm = +b.dataset.srm; list.splice(rm,1);
+      if (rm < first) first--; else if (rm === first || first >= list.length) first = 0;
+      draw(); });
     document.querySelectorAll("[data-sdeal]").forEach(b => b.onclick = () => { first = +b.dataset.sdeal; draw(); });
     const add = $("#sAdd"); if (add) add.onclick = () => { list.push(""); draw(); const ins = document.querySelectorAll("[data-sname]"); ins[ins.length-1].focus(); };
     $("#sStart").onclick = start;
@@ -689,8 +728,8 @@ function showPast(){
   showPage("Past games", h);
   document.querySelectorAll("[data-past]").forEach(b => b.onclick = () => {
     const g = state.past[+b.dataset.past];
-    let t = `<div class="card" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
-    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${r.pts[i]}${r.made[i]?`<span class="made">✓</span>`:""}</td>`).join("")}</tr>`; });
+    let t = `<div class="card tablewrap" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${Number(r.pts[i])||0}${r.made[i]?`<span class="made">✓</span>`:""}</td>`).join("")}</tr>`; });
     t += `<tr><th>Σ</th>${stats(g).map(p=>`<th>${p.total}</th>`).join("")}</tr></table></div>
       <button class="wide danger" id="delPast">Delete this game</button>`;
     showPage("Game", t);
@@ -740,6 +779,17 @@ function importData(ev){
 /* ---------- sheets ---------- */
 function open(sel){ $(sel).classList.add("open"); }
 function close(sel){ $(sel).classList.remove("open"); }
+// While any page (Menu, a round, Who deals? and so on) is open, hold the main screen still so it
+// cannot scroll behind it, then put it back exactly where it was. Watching the pages themselves
+// catches every way they open and close.
+let lockY = 0;
+function syncScrollLock(){
+  const anyOpen = !!document.querySelector(".sheet.open"), locked = document.body.classList.contains("locked");
+  if (anyOpen && !locked){ lockY = window.scrollY; document.body.style.top = `-${lockY}px`; document.body.classList.add("locked"); }
+  else if (!anyOpen && locked){ document.body.classList.remove("locked"); document.body.style.top = ""; window.scrollTo(0, lockY); }
+}
+const sheetWatch = new MutationObserver(syncScrollLock);
+document.querySelectorAll(".sheet").forEach(el => sheetWatch.observe(el, {attributes:true, attributeFilter:["class"]}));
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".sheet").classList.remove("open"));
 $("#btnMenu").onclick = () => { drawMenu(); open("#sheetMenu"); };
 $("#btnRound").onclick = () => { if (!state.current || winner(state.current)) startNew(); else openRound(null); };
@@ -761,7 +811,6 @@ function showUpdateBar(v){
 }
 async function applyUpdate(v){
   if (!confirm(`Update to version ${v.version}? Your scores stay exactly as they are.`)) return;
-  // Safety copy of the scores before anything changes.
   // Save the scores first. Updating reloads the page from what is saved, so if this device is
   // not saving, stop here: reloading would lose every round that is only on screen.
   saveWarned = true;                                   // show the message below, not the general one
@@ -769,15 +818,32 @@ async function applyUpdate(v){
     alert("Update stopped: this device is not saving scores right now (storage may be full, or private browsing may be on).\n\nUse Menu, then Back up scores, before updating.");
     return;
   }
-  try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
-  catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
-  try {
-    // Clear only the saved app files (not the scores) so the newest ones download.
-    const ks = await caches.keys();
-    await Promise.all(ks.filter(k => k.startsWith("phase10-")).map(k => caches.delete(k)));
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (reg) await reg.update().catch(()=>{});
-  } catch(e){}
+  // Updating clears the saved app files and downloads new ones. With no connection that would
+  // leave nothing to open, so check first.
+  if ((await checkForUpdate()) === "offline") { alert("You're offline, so the update can't download. Nothing was changed. Try again when you're connected."); return; }
+  // Download every app file first. Only when all of them arrived, and the page really is this app,
+  // replace the saved copy. If anything fails, the current version stays and still works offline.
+  if (window.caches) {
+    const files = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
+    let got;
+    try {
+      const t = Date.now();
+      got = await Promise.all(files.map(async f => {
+        const res = await fetch(f + "?fresh=" + t, {cache: "no-store"});   // ?fresh= goes past the saved copy
+        if (!res.ok) throw new Error(f + " " + res.status);
+        if (f === "./" || f === "index.html") { const txt = await res.clone().text(); const m = txt.match(/const APP_VERSION = (\d+);/); if (!m || Number(m[1]) < Number(v.version)) throw new Error("not the new version"); }
+        return [f, res];
+      }));
+    } catch(e){ alert("The update didn't finish downloading, so nothing was changed. Try again when the connection is better."); return; }
+    try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
+    catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
+    try {
+      const app = await caches.open("phase10-app");
+      for (const [f, res] of got) await app.put(f, res);
+      const ks = await caches.keys();
+      await Promise.all(ks.filter(k => k.startsWith("phase10-") && k !== "phase10-app").map(k => caches.delete(k)));
+    } catch(e){}
+  }
   location.reload();
 }
 async function autoCheck(){
