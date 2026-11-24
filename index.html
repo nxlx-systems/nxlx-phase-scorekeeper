@@ -47,7 +47,10 @@ main,#upd{padding:0 var(--gr) 0 var(--gl)}
 .rank{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;
   background:var(--line);color:var(--ink)}
 .rank.first{background:var(--gold);color:#fff}
-.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:6px}
+.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:4px 6px;flex-wrap:wrap;min-width:0;overflow-wrap:break-word}
+/* long names wrap instead of pushing points and buttons off the screen */
+.player>div{min-width:0}
+.dtag{flex:none}
 .dot{width:10px;height:10px;border-radius:50%;flex:none}
 .pdesc{color:var(--muted);font-size:14px}
 .phasebadge{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
@@ -61,6 +64,9 @@ main,#upd{padding:0 var(--gr) 0 var(--gl)}
   box-shadow:0 8px 24px rgba(0,0,0,.25)}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:22px 2px 6px}
 table{width:100%;border-collapse:collapse;font-size:15px}
+/* with many players the rounds table scrolls sideways inside its card, not the whole page */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tablewrap th{white-space:nowrap}
 th,td{padding:8px 4px;text-align:center;border-bottom:1px solid var(--line)}
 th{font-size:13px;color:var(--muted);font-weight:600}
 td.r{color:var(--muted);width:34px}
@@ -81,7 +87,8 @@ tr.tap{cursor:pointer}
 .link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
 .link.l{text-align:left}.link.r{text-align:right}
 .entry .row1{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.entry .row1 .pname{flex:1}
+.entry .row1 .pname{flex:1;flex-wrap:wrap}
+.entry .row1 .toggle{flex:none}
 .toggle{border:0;border-radius:12px;height:44px;padding:0 14px;font-size:15px;font-weight:700;
   background:var(--line);color:var(--ink)}
 .toggle.on{background:var(--good);color:#fff}
@@ -221,7 +228,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 14;
+const APP_VERSION = 15;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -333,7 +340,7 @@ function render(){
   h += `<div class="sechead"><h2>Rounds</h2>${n ? `<button class="chip small" id="btnEditRounds">Edit a round</button>` : ""}</div>`;
   if (!n) h += `<div class="card empty">No rounds yet. Tap “Score round” after each hand.</div>`;
   else {
-    h += `<div class="card" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    h += `<div class="card tablewrap" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
     g.rounds.forEach((r,ri) => {
       const rd = dealerOf(g, ri);
       h += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>
@@ -350,7 +357,7 @@ function pickRoundToEdit(){
   const g = state.current;
   const list = g.rounds.map((r,ri) => ({r,ri})).reverse().map(({r,ri}) =>
     `<button class="menuitem" data-edit="${ri}"><b>Round ${ri+1}</b>${ri===g.rounds.length-1?" (last round)":""}
-      <span>${g.players.map((p,i)=>`${esc(p)} ${r.pts[i]}${r.made[i]?" ✓":""}`).join(" · ")}</span></button>`).join("");
+      <span>${g.players.map((p,i)=>`${esc(p)} ${Number(r.pts[i])||0}${r.made[i]?" ✓":""}`).join(" · ")}</span></button>`).join("");
   showPage("Which round?", `<p class="hint">Pick the round you want to change. ✓ means they made their phase.</p>${list}`);
   document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { close("#sheetPage"); openRound(+b.dataset.edit); });
 }
@@ -408,7 +415,7 @@ function drawRound(){
   const g = state.current, st = stats(g);
   let h = "";
   if (draft.index!=null) h += `<div class="editwarn"><b>You are changing round ${draft.index+1}, which was already played.</b>
-      ${g.players[dealerOf(g, draft.index)]} dealt it. Tap Cancel to leave it as it was.</div>`;
+      ${esc(g.players[dealerOf(g, draft.index)])} dealt it. Tap Cancel to leave it as it was.</div>`;
   g.players.forEach((name,i) => {
     // phase they were attempting in this round
     let done = 0; const upto = draft.index==null ? g.rounds.length : draft.index;
@@ -603,7 +610,9 @@ function openSetup(names, dealer){
       };
     });
     document.querySelectorAll("[data-srm]").forEach(b => b.onclick = () => {
-      list.splice(+b.dataset.srm,1); if (first >= list.length) first = 0; draw(); });
+      const rm = +b.dataset.srm; list.splice(rm,1);
+      if (rm < first) first--; else if (rm === first || first >= list.length) first = 0;
+      draw(); });
     document.querySelectorAll("[data-sdeal]").forEach(b => b.onclick = () => { first = +b.dataset.sdeal; draw(); });
     const add = $("#sAdd"); if (add) add.onclick = () => { list.push(""); draw(); const ins = document.querySelectorAll("[data-sname]"); ins[ins.length-1].focus(); };
     $("#sStart").onclick = start;
@@ -689,8 +698,8 @@ function showPast(){
   showPage("Past games", h);
   document.querySelectorAll("[data-past]").forEach(b => b.onclick = () => {
     const g = state.past[+b.dataset.past];
-    let t = `<div class="card" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
-    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${r.pts[i]}${r.made[i]?`<span class="made">✓</span>`:""}</td>`).join("")}</tr>`; });
+    let t = `<div class="card tablewrap" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${Number(r.pts[i])||0}${r.made[i]?`<span class="made">✓</span>`:""}</td>`).join("")}</tr>`; });
     t += `<tr><th>Σ</th>${stats(g).map(p=>`<th>${p.total}</th>`).join("")}</tr></table></div>
       <button class="wide danger" id="delPast">Delete this game</button>`;
     showPage("Game", t);
@@ -769,6 +778,9 @@ async function applyUpdate(v){
     alert("Update stopped: this device is not saving scores right now (storage may be full, or private browsing may be on).\n\nUse Menu, then Back up scores, before updating.");
     return;
   }
+  // Updating clears the saved app files and downloads new ones. With no connection that would
+  // leave nothing to open, so check first.
+  if ((await checkForUpdate()) === "offline") { alert("You're offline, so the update can't download. Nothing was changed. Try again when you're connected."); return; }
   try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
   catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
   try {

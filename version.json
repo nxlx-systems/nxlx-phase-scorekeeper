@@ -1,1 +1,1 @@
-{"version": 14, "notes": "Warns about blank points and when this device cannot save. Menu can now bring back the safety copy saved before an update."}
+{"version": 15, "notes": "Fixes: long names and big games fit the screen, Update now waits for a connection, and the app no longer updates itself without asking."}
