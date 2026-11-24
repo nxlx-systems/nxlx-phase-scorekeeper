@@ -55,7 +55,7 @@ main,#upd{padding:0 var(--gr) 0 var(--gl)}
 .rank{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;
   background:var(--line);color:var(--ink)}
 .rank.first{background:var(--gold);color:#fff}
-.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:4px 6px;flex-wrap:wrap;min-width:0;overflow-wrap:break-word}
+.pname{font-weight:700;font-size:18px;display:flex;align-items:center;gap:4px 6px;flex-wrap:wrap;min-width:0;overflow-wrap:anywhere}
 /* long names wrap instead of pushing points and buttons off the screen */
 .player>div{min-width:0}
 .dtag{flex:none}
@@ -90,7 +90,7 @@ tr.tap{cursor:pointer}
 .sheet.open{display:flex}
 .sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) var(--gr) 10px var(--gl);
   border-bottom:1px solid var(--line);background:var(--card)}
-.sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center}
+.sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center;min-width:0;overflow-wrap:anywhere}
 .sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
 .link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
 .link.l{text-align:left}.link.r{text-align:right}
@@ -132,6 +132,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
   padding:16px;border-radius:14px;margin:8px 0;box-shadow:0 0 0 1px var(--line) inset}
 .menuitem span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .dealer{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.dealer>div{min-width:0;overflow-wrap:anywhere}
 .dicon{font-size:28px;width:30px;text-align:center}
 .dtag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--ink);color:var(--bg);
   border-radius:6px;padding:2px 6px;margin-left:4px}
@@ -152,6 +153,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 .wicon{width:88px;height:88px;border-radius:20px;display:block;margin:0 auto}
 .wtitle{font-size:26px;text-transform:none;letter-spacing:0;color:var(--ink);margin:6px 0 4px}
 .dealpick{display:flex;flex-wrap:wrap;gap:8px}
+.dealpick .toggle{max-width:100%;overflow-wrap:anywhere;height:auto;min-height:44px}
 /* wider screens and sideways phones: player cards side by side */
 .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));column-gap:10px}
 /* sideways phone (short screen): slimmer header and bottom button */
@@ -258,8 +260,26 @@ let state = load();
 // If the device refuses to save (storage full, or blocked in private browsing), say so once
 // instead of failing silently, so nobody finds out after the game that nothing was kept.
 let saveWarned = false;
+// The app can be open in two places at once (two tabs, or the installed app and a tab). Each keeps
+// its own copy on screen, so before this one saves, and whenever it comes back into view, it takes
+// up any newer scores the other one saved instead of writing its older copy over them.
+let lastSaved = null; try { lastSaved = localStorage.getItem(KEY); } catch(e){}              // what this window last read or wrote
+function newerElsewhere(){ try { const now = localStorage.getItem(KEY); return now !== lastSaved ? now : null; } catch(e){ return null; } }
+function takeNewer(fromSave){
+  if (newerElsewhere() == null) return false;
+  state = load(); lastSaved = localStorage.getItem(KEY);
+  document.querySelectorAll(".sheet.open").forEach(el => el.classList.remove("open"));
+  render();
+  alert(fromSave
+    ? "The scores were changed in another window. This screen now shows those scores, and your last change here was not saved. Please make it again."
+    : "The scores were changed in another window, so this screen now shows the latest scores.");
+  return true;
+}
+window.addEventListener("storage", e => { if (e.key === KEY || e.key === null) takeNewer(false); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) takeNewer(false); });
 function save(){
-  try { localStorage.setItem(KEY, JSON.stringify(state)); saveWarned = false; return true; }
+  if (takeNewer(true)) return true;                          // another window saved first: keep theirs
+  try { const text = JSON.stringify(state); localStorage.setItem(KEY, text); lastSaved = text; saveWarned = false; return true; }
   catch(e){
     if (!saveWarned) {
       saveWarned = true;
@@ -803,13 +823,27 @@ async function applyUpdate(v){
   if ((await checkForUpdate()) === "offline") { alert("You're offline, so the update can't download. Nothing was changed. Try again when you're connected."); return; }
   try { localStorage.setItem("phase10.beforeUpdate", JSON.stringify({at: new Date().toISOString(), from: APP_VERSION, state})); }
   catch(e){ try { localStorage.removeItem("phase10.beforeUpdate"); } catch(e2){} }   // never leave an older copy that looks like this one
-  try {
-    // Clear only the saved app files (not the scores) so the newest ones download.
-    const ks = await caches.keys();
-    await Promise.all(ks.filter(k => k.startsWith("phase10-")).map(k => caches.delete(k)));
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (reg) await reg.update().catch(()=>{});
-  } catch(e){}
+  // Download every app file first. Only when all of them arrived, and the page really is this app,
+  // replace the saved copy. If anything fails, the current version stays and still works offline.
+  if (window.caches) {
+    const files = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
+    let got;
+    try {
+      const t = Date.now();
+      got = await Promise.all(files.map(async f => {
+        const res = await fetch(f + "?fresh=" + t, {cache: "no-store"});   // ?fresh= goes past the saved copy
+        if (!res.ok) throw new Error(f + " " + res.status);
+        if (f === "./" || f === "index.html") { const txt = await res.clone().text(); if (!txt.includes("const APP_VERSION")) throw new Error("not the app"); }
+        return [f, res];
+      }));
+    } catch(e){ alert("The update didn't finish downloading, so nothing was changed. Try again when the connection is better."); return; }
+    try {
+      const app = await caches.open("phase10-app");
+      for (const [f, res] of got) await app.put(f, res);
+      const ks = await caches.keys();
+      await Promise.all(ks.filter(k => k.startsWith("phase10-") && k !== "phase10-app").map(k => caches.delete(k)));
+    } catch(e){}
+  }
   location.reload();
 }
 async function autoCheck(){

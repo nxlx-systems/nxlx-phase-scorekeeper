@@ -22,6 +22,7 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   if (req.url.includes("version.json")) return; // always ask the internet for the latest version number
+  if (new URL(req.url).searchParams.has("fresh")) return; // Update now downloading the new version
   e.respondWith(
     caches.match(req, {ignoreSearch: true}).then(hit => hit || fetch(req.url, {cache: "reload"}).then(res => {
       if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
