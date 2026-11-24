@@ -35,6 +35,14 @@ button,input,textarea,select,label{font-family:inherit;line-height:inherit}
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
+/* Solid strips under the clock and behind the Score round button, so the list slides away
+   underneath them instead of showing through. The bottom one fades in over its top edge. */
+body::before,body::after{content:"";position:fixed;left:0;right:0;z-index:4;pointer-events:none}
+body::before{top:0;height:env(safe-area-inset-top);background:var(--bg)}
+body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + 92px);
+  background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 20px)}
+/* while another page is open, the main screen is held still (see syncScrollLock) */
+body.locked{position:fixed;left:0;right:0;overflow:hidden}
 header{display:flex;align-items:center;gap:8px;padding:14px var(--gr) 6px var(--gl)}
 /* shrinks a little on narrow phones so "Phase 10 Scorekeeper" stays on one line beside Menu */
 header h1{font-size:clamp(18px, 5.2vw, 28px);margin:0;flex:1;min-width:0;letter-spacing:-.5px;line-height:1.15}
@@ -83,7 +91,7 @@ tr.tap{cursor:pointer}
 .sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) var(--gr) 10px var(--gl);
   border-bottom:1px solid var(--line);background:var(--card)}
 .sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center}
-.sheet .body{flex:1;overflow:auto;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
+.sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
 .link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
 .link.l{text-align:left}.link.r{text-align:right}
 .entry .row1{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -152,6 +160,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
   header h1{font-size:22px}
   .cta{height:46px;font-size:16px;bottom:calc(env(safe-area-inset-bottom) + 8px)}
   body{padding-bottom:calc(env(safe-area-inset-bottom) + 66px)}
+  body::after{height:calc(env(safe-area-inset-bottom) + 68px)}
 }
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 label.menuitem{cursor:pointer}
@@ -749,6 +758,17 @@ function importData(ev){
 /* ---------- sheets ---------- */
 function open(sel){ $(sel).classList.add("open"); }
 function close(sel){ $(sel).classList.remove("open"); }
+// While any page (Menu, a round, Who deals? and so on) is open, hold the main screen still so it
+// cannot scroll behind it, then put it back exactly where it was. Watching the pages themselves
+// catches every way they open and close.
+let lockY = 0;
+function syncScrollLock(){
+  const anyOpen = !!document.querySelector(".sheet.open"), locked = document.body.classList.contains("locked");
+  if (anyOpen && !locked){ lockY = window.scrollY; document.body.style.top = `-${lockY}px`; document.body.classList.add("locked"); }
+  else if (!anyOpen && locked){ document.body.classList.remove("locked"); document.body.style.top = ""; window.scrollTo(0, lockY); }
+}
+const sheetWatch = new MutationObserver(syncScrollLock);
+document.querySelectorAll(".sheet").forEach(el => sheetWatch.observe(el, {attributes:true, attributeFilter:["class"]}));
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".sheet").classList.remove("open"));
 $("#btnMenu").onclick = () => { drawMenu(); open("#sheetMenu"); };
 $("#btnRound").onclick = () => { if (!state.current || winner(state.current)) startNew(); else openRound(null); };
