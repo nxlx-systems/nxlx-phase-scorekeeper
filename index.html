@@ -633,17 +633,20 @@ function showPlayers(){
     const order = seats.map(s => s.from);              // order[newSeat] = oldSeat
     const newSeat = old => order.indexOf(old);          // -1 if that player was removed
     const moved = order.some((o,i) => o !== i) || order.length !== g.players.length;
+    const nd = nextDealer(g);                            // who deals next, before anything moves
     if (locked && moved) {
-      const nd = nextDealer(g);                          // who deals next, before anything moves
-      g.rounds.forEach(r => {
+      g.rounds.forEach((r, ri) => {
+        // Pin who dealt each round first: rounds saved by early versions have no dealer and
+        // would otherwise be worked out from the new seating, naming the wrong person.
+        r.dealer = newSeat(dealerOf(g, ri));
         r.pts = order.map(o => r.pts[o]);
         r.made = order.map(o => r.made[o]);
-        if (r.dealer != null) r.dealer = newSeat(r.dealer);
       });
       g.firstDealer = Math.max(0, newSeat(g.firstDealer || 0));
       g.dealerSet = newSeat(nd);                         // keep the same person on the next deal
     } else if (!locked) {
-      g.firstDealer = Math.max(0, newSeat(g.firstDealer || 0));
+      // No rounds yet: whoever was going to deal still deals first (if they are still playing).
+      g.firstDealer = Math.max(0, newSeat(nd));
       g.dealerSet = null;
       g.rounds = [];
     }
