@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Phase 10 Scorekeeper</title>
+<!-- what a pasted link shows on Reddit, Mastodon, Bluesky, Facebook and in chat apps -->
+<meta name="description" content="Free, offline score sheet for the card game Phase 10. Phones, tablets and computers. No account, no ads. Fan-made, not affiliated with Mattel.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NXLX.Systems">
+<meta property="og:title" content="Phase 10 Scorekeeper">
+<meta property="og:description" content="Free, offline score sheet for the card game Phase 10. Phones, tablets and computers. No account, no ads. Fan-made, not affiliated with Mattel.">
+<meta property="og:url" content="https://nxlx-systems.github.io/nxlx-phase-scorekeeper/">
+<meta property="og:image" content="https://nxlx-systems.github.io/nxlx-phase-scorekeeper/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Phase 10 Scorekeeper scoreboard on a phone, next to the app's name.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -240,7 +252,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 15;
+const APP_VERSION = 16;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -412,7 +424,7 @@ function handProblem(i){
   const raw = draft.pts[i], n = parseInt(raw, 10) || 0;
   if (!draft.made[i]) {
     if (raw === "") return `Missed their phase, so they still hold 10 cards. Enter their points (at least ${MIN_MISSED}).`;
-    if (n < MIN_MISSED) return `Missed their phase, so they still hold 10 cards: at least ${MIN_MISSED} points. ${n} is fewer than 10 cards.`;
+    if (n < MIN_MISSED) return `Missed their phase, so they still hold 10 cards: at least ${MIN_MISSED} points. ${n} is too low for 10 cards.`;
   }
   // A blank would be saved as 0, which reads as "went out". Make it a choice, not an accident.
   if (raw === "") return `No points entered. Enter the cards left in their hand, or tap Went out if they have none.`;
