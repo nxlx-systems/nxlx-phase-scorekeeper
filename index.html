@@ -108,11 +108,11 @@ tr.tap{cursor:pointer}
 .sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px + var(--edge)) var(--gr) 10px var(--gl);
   border-bottom:1px solid var(--line);background:var(--card)}
 .sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center;min-width:0;overflow-wrap:anywhere}
-.sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 36px) var(--gl)}
-/* the list on a page fades out at the bottom edge instead of being cut off, like the main screen;
-   taps pass through it, and the extra bottom padding lets the last item scroll clear of it */
+.sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
+/* a light feather at the bottom edge of each page instead of a hard cut: it covers only the home bar
+   area (at least 16px), fading the whole way down; taps pass through, and the last item scrolls clear of it */
 .sheet::after{content:"";position:absolute;left:0;right:0;bottom:0;z-index:1;pointer-events:none;
-  height:calc(env(safe-area-inset-bottom) + 28px);background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 28px)}
+  height:max(16px, env(safe-area-inset-bottom));background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg))}
 .link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
 .link.l{text-align:left}.link.r{text-align:right}
 .entry .row1{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -261,7 +261,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 19;
+const APP_VERSION = 20;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",

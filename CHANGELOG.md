@@ -2,6 +2,10 @@
 
 What changed in each version of Phase 10 Scorekeeper. The version number is shown at the bottom of the Menu. Dates are in Saskatchewan time.
 
+## 20 (26 November 2026)
+
+- A lighter fade at the bottom of the Menu and the other pages. It now covers only the strip at the very bottom of the screen.
+
 ## 19 (26 November 2026)
 
 - The Menu, Players, Past games and the other pages fade out softly at the bottom edge instead of being cut off, like the main screen.
