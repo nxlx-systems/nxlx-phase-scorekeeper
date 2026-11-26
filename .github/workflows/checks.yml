@@ -1,0 +1,55 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Version, storage key, manifest, scripts
+        run: node tests/static.mjs
+      - name: sw.js stays the same between versions
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'sw-change')
+        run: |
+          if ! git diff --quiet "origin/${{ github.base_ref }}"...HEAD -- sw.js; then
+            echo "::error file=sw.js::sw.js changed. A changed sw.js updates installed apps without Update now and without the safety copy (see docs/RELEASING.md). If this change is really needed, add the label sw-change to the pull request."
+            exit 1
+          fi
+          echo "sw.js unchanged."
+
+  smoke:
+    name: Browser smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1
+          npx playwright install --with-deps chromium
+      - name: Serve the app and run the smoke test
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:8080/ >/dev/null && break; sleep 0.5; done
+          BASE_URL=http://127.0.0.1:8080/ node tests/smoke.mjs

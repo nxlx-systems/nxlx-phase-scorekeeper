@@ -1,0 +1,43 @@
+name: Something is not working
+description: Report a problem with Phase 10 Scorekeeper
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please don't paste a whole backup file here: it holds your players' names and scores.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you tap, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown at the bottom of the Menu, for example "v17".
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - iPhone or iPad
+        - Android phone or tablet
+        - Computer
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser, and whether the app is installed
+      description: For example "Safari, installed to the home screen" or "Chrome on Windows, not installed".
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Screenshots help. Please use made-up names if the screen shows players.
