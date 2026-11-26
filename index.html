@@ -252,7 +252,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 16;
+const APP_VERSION = 17;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -753,7 +753,7 @@ async function exportData(){
   const name = `phase10-backup-${new Date().toISOString().slice(0,10)}.json`;
   const file = new File([text], name, {type:"application/json"});
   try {
-    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Phase 10 Scorekeeper backup"}); return; }
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file]}); return; }   // the file only: a title or text is saved as a second file on some phones
   } catch(e){ if (e.name==="AbortError") return; }
   const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; a.click();
 }
