@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="icon-192.png" width="96" height="96" alt="Phase 10 Scorekeeper icon">
+  <a href="https://nxlx-systems.github.io/nxlx-phase-scorekeeper/">
+    <img src="docs/hero.png" width="720" alt="Phase 10 Scorekeeper: tracks every phase, hand and deal. Free. Works offline, no account, no ads. A phone shows the scoreboard for four players.">
+  </a>
 </p>
 
 <h1 align="center">Phase 10 Scorekeeper</h1>
@@ -14,6 +16,14 @@
   <a href="#install-it">Install it</a>
   &nbsp;·&nbsp;
   <a href="https://nxlx.gumroad.com/l/phase-ten-scorekeeper">Support it on Gumroad</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/nxlx-systems/nxlx-phase-scorekeeper/releases/latest"><img src="https://img.shields.io/github/v/release/nxlx-systems/nxlx-phase-scorekeeper?label=version&color=ff6b4a" alt="Latest version"></a>
+  <a href="https://github.com/nxlx-systems/nxlx-phase-scorekeeper/actions/workflows/checks.yml"><img src="https://github.com/nxlx-systems/nxlx-phase-scorekeeper/actions/workflows/checks.yml/badge.svg" alt="Checks"></a>
+  <img src="https://img.shields.io/badge/works-offline-3ddc97" alt="Works offline">
+  <img src="https://img.shields.io/badge/no%20account%2C%20no%20ads-%E2%9C%93-7aa2ff" alt="No account, no ads">
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/licence-PolyForm%20Noncommercial-6c6c76" alt="Licence: PolyForm Noncommercial"></a>
 </p>
 
 <p align="center">
@@ -44,6 +54,10 @@
 | **Private** | Scores stay on your device. No account, no tracking, no ads. |
 
 ## Install it
+
+<p align="center">
+  <img src="docs/devices.png" width="720" alt="The same scoreboard on a laptop and a phone">
+</p>
 
 It runs in any up-to-date web browser. Installing it adds an icon and lets it work with no internet.
 
@@ -79,13 +93,15 @@ Whichever device you use, open it once while online after installing. From then 
 
 The app checks for a newer version when you're online and shows an **Update available** bar. Tap **Update now** to get it. Your scores are never touched by an update, and a safety copy is saved first. You can also check any time from **Menu, then Check for updates**.
 
+What changed in each version: see the [releases](https://github.com/nxlx-systems/nxlx-phase-scorekeeper/releases) and the [changelog](CHANGELOG.md).
+
 ## Privacy
 
 Everything is stored on your own device, in the browser's storage for this site. Nothing is sent anywhere. If you remove the app or clear your browser's website data, the scores go with it, so use **Menu, then Back up scores** now and then.
 
 ## Support
 
-The app is free. If it saves you a pencil, you can [pay what you want on Gumroad](https://nxlx.gumroad.com/l/phase-ten-scorekeeper). Questions or ideas: open an [issue](https://github.com/nxlx-systems/nxlx-phase-scorekeeper/issues).
+The app is free. If it saves you a pencil, you can [pay what you want on Gumroad](https://nxlx.gumroad.com/l/phase-ten-scorekeeper). Questions, ideas or bugs: open an [issue](https://github.com/nxlx-systems/nxlx-phase-scorekeeper/issues). Want to help? See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Licence
 
