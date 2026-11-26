@@ -2,6 +2,10 @@
 
 What changed in each version of Phase 10 Scorekeeper. The version number is shown at the bottom of the Menu. Dates are in Saskatchewan time.
 
+## 19 (26 November 2026)
+
+- The Menu, Players, Past games and the other pages fade out softly at the bottom edge instead of being cut off, like the main screen.
+
 ## 18 (26 November 2026)
 
 - More room above the title on iPhone when the app is opened from the home screen. The title sat in the soft blur under the clock.
