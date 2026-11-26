@@ -44,6 +44,10 @@ button,label,input,textarea{touch-action:manipulation}
 button,input,textarea,select,label{font-family:inherit;line-height:inherit}
 /* side gutter: 16px, more beside the notch, and centred on wide screens */
 :root{--gl:max(16px, env(safe-area-inset-left), calc((100% - 760px) / 2));--gr:max(16px, env(safe-area-inset-right), calc((100% - 760px) / 2))}
+/* extra room under the clock: on iPhone and iPad, the app opened from the home screen blurs a band
+   below the status bar that reaches past the safe area, so the title starts below that band */
+:root{--edge:0px}
+@media (display-mode:standalone){@supports (-webkit-touch-callout:none){:root{--edge:24px}}}
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
@@ -51,12 +55,12 @@ body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)
    underneath them instead of showing through. The bottom one fades in over its top edge. */
 body::before,body::after{content:"";position:fixed;left:0;right:0;z-index:4}
 /* the strips take taps themselves, so nothing hidden behind them can be pressed by accident */
-body::before{top:0;height:env(safe-area-inset-top);background:var(--bg)}
+body::before{top:0;height:calc(env(safe-area-inset-top) + var(--edge));background:var(--bg)}
 body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + 92px);
   background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 20px)}
 /* while another page is open, the main screen is held still (see syncScrollLock) */
 body.locked{position:fixed;left:0;right:0;overflow:hidden}
-header{display:flex;align-items:center;gap:8px;padding:14px var(--gr) 6px var(--gl)}
+header{display:flex;align-items:center;gap:8px;padding:calc(14px + var(--edge)) var(--gr) 6px var(--gl)}
 /* shrinks a little on narrow phones so "Phase 10 Scorekeeper" stays on one line beside Menu */
 header h1{font-size:clamp(18px, 5.2vw, 28px);margin:0;flex:1;min-width:0;letter-spacing:-.5px;line-height:1.15}
 header h1 small{display:block;font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
@@ -101,7 +105,7 @@ tr.tap{cursor:pointer}
 /* sheets */
 .sheet{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;background:var(--bg)}
 .sheet.open{display:flex}
-.sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) var(--gr) 10px var(--gl);
+.sheet .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px + var(--edge)) var(--gr) 10px var(--gl);
   border-bottom:1px solid var(--line);background:var(--card)}
 .sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center;min-width:0;overflow-wrap:anywhere}
 .sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
@@ -171,6 +175,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));column-gap:10px}
 /* sideways phone (short screen): slimmer header and bottom button */
 @media (max-height:500px){
+  :root{--edge:0px}
   header{padding-top:8px}
   header h1{font-size:22px}
   .cta{height:46px;font-size:16px;bottom:calc(env(safe-area-inset-bottom) + 8px)}
@@ -252,7 +257,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 17;
+const APP_VERSION = 18;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
