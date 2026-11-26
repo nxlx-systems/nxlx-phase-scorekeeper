@@ -1,6 +1,6 @@
 # Releasing
 
-GitHub Pages publishes the `main` branch. Every push to `main` is a release, so changes reach `main` only through a pull request whose checks have passed.
+GitHub Pages publishes the `main` branch. Every push to `main` is a release, so changes go to `main` through a pull request, after its checks pass and it has been reviewed.
 
 ## Checklist
 
@@ -21,16 +21,19 @@ GitHub Pages publishes the `main` branch. Every push to `main` is a release, so 
 
 The **Checks** workflow (`.github/workflows/checks.yml`) runs on every pull request and every push to `main`:
 
-- **Static checks** (`tests/static.mjs`): the two version numbers match and `version.json` has notes; the storage key is unchanged; the manifest is valid; every script parses. On pull requests it also fails if `sw.js` changed, unless the pull request has the label `sw-change`.
-- **Browser smoke test** (`tests/smoke.mjs`): the app loads with no script errors upright and sideways, light and dark, with nothing sticking out sideways; a saved game shows; Back up scores shares one `.json` file only; restoring that backup gives back the same game.
+- **Static checks** (`tests/static.mjs`): the two version numbers match and `version.json` has notes; `CHANGELOG.md` has a heading for the version; the storage key is unchanged; the manifest is valid; every script parses. On pull requests it also fails if `sw.js` changed, unless the pull request has the label `sw-change` (adding the label reruns the checks).
+- **Browser smoke test** (`tests/smoke.mjs`): the app loads with no script errors upright and sideways, light and dark, with nothing sticking out sideways; a 6-player game with long names fits; a saved game shows; Back up scores shares one `.json` file only; restoring that backup gives back the same game.
 
-To run them on a computer, from the repo folder:
+Playwright is pinned to one version in the workflow. Raise it now and then, in its own pull request.
+
+To run them on a computer, from the repo folder (`node_modules/` is ignored by git):
 
 ```
 node tests/static.mjs
-npm install --no-save --no-package-lock playwright@1 && npx playwright install chromium
+npm install --no-save --no-package-lock playwright@1.65.1 && npx playwright install chromium
 python3 -m http.server 8080 --bind 127.0.0.1 &
 BASE_URL=http://127.0.0.1:8080/ node tests/smoke.mjs
+kill %1
 ```
 
 ## Rules that protect people's scores

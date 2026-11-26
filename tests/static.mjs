@@ -20,6 +20,10 @@ if (m && version && Number(m[1]) !== Number(version.version))
 if (version && !(typeof version.notes === "string" && version.notes.trim()))
   problems.push("version.json needs a short `notes` line (people see it in the Update available bar)");
 
+// The changelog has a heading for this version, e.g. "## 17 (26 November 2026)".
+if (m && !new RegExp(`^## ${m[1]} `, "m").test(readFileSync("CHANGELOG.md", "utf8")))
+  problems.push(`CHANGELOG.md has no "## ${m[1]} (date)" heading for this version`);
+
 // 2. The storage key never changes (scores live under it).
 if (!html.includes('const KEY = "phase10.v1";'))
   problems.push('The storage key `const KEY = "phase10.v1";` is missing or changed. Changing it loses everyone\'s scores.');
@@ -30,7 +34,11 @@ catch (e) { problems.push("manifest.webmanifest is not valid JSON: " + e.message
 
 // 4. Every inline script and sw.js parse as JavaScript.
 const dir = mkdtempSync(join(tmpdir(), "p10-"));
-const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(x => x[1]);
+// Only JavaScript: skip scripts with a src, and data scripts such as type="application/ld+json".
+const scripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)]
+  .filter(x => !/\bsrc=/.test(x[1]))
+  .filter(x => { const t = x[1].match(/\btype=["']?([^"'\s>]+)/); return !t || /^(text\/javascript|module)$/i.test(t[1]); })
+  .map(x => x[2]);
 if (!scripts.length) problems.push("index.html has no inline script");
 scripts.forEach((code, i) => {
   const f = join(dir, `inline-${i}.js`);

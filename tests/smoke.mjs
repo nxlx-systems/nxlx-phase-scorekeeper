@@ -38,6 +38,27 @@ try {
     }
   }
 
+  // A big game (6 players, long names) fits upright and sideways, with no script errors.
+  const BIG = JSON.parse(JSON.stringify(GAME));
+  BIG.current.players = ["Samantha-Josephine", "Jo", "Lee", "Kai", "Alexandriaaaaaaaaa", "Max"];
+  BIG.current.colors = [0, 1, 2, 3, 4, 5];
+  BIG.current.rounds = GAME.current.rounds.map(r => ({ pts: [...r.pts, 5, 0, 10], made: [...r.made, true, true, true], dealer: r.dealer }));
+  for (const [label, viewport] of [["upright", { width: 390, height: 844 }], ["sideways", { width: 844, height: 390 }]]) {
+    const c = await browser.newContext({ viewport });
+    const p = await c.newPage();
+    const errs = [];
+    p.on("pageerror", e => errs.push(String(e)));
+    p.on("console", m => { if (m.type() === "error") errs.push(m.text()); });
+    await p.goto(BASE);
+    await p.evaluate(g => localStorage.setItem("phase10.v1", JSON.stringify(g)), BIG);
+    await p.reload();
+    await p.waitForFunction(() => document.body.innerText.includes("Max"));
+    const fits = await p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+    check(fits, `${label}: a 6-player game with long names fits without sticking out sideways`);
+    check(errs.length === 0, `${label}: no script errors with a big game ${errs.join(" ")}`);
+    await c.close();
+  }
+
   // A saved game shows, and backup then restore gives back the same scores.
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await ctx.addInitScript(() => {

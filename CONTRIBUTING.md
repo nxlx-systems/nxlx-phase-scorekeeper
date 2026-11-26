@@ -18,4 +18,4 @@ Small, focused pull requests are welcome. Before you start on anything large, op
 
 ## Licence
 
-The code is under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). By sending a pull request, you agree that your contribution is shared under the same licence. The name Phase 10 Scorekeeper and the app icon are not covered by the licence.
+The code is under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). By sending a pull request, you agree that your contribution is shared under the same licence, and that NXLX.Systems may also use and license it on any terms, including commercially. The name Phase 10 Scorekeeper and the app icon are not covered by the licence.

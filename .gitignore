@@ -1,0 +1,4 @@
+# Installed only to run the tests; never published
+node_modules/
+package.json
+package-lock.json
