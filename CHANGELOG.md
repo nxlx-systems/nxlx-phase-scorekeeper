@@ -2,6 +2,10 @@
 
 What changed in each version of Phase 10 Scorekeeper. The version number is shown at the bottom of the Menu. Dates are in Saskatchewan time.
 
+## 18 (26 November 2026)
+
+- More room above the title on iPhone when the app is opened from the home screen. The title sat in the soft blur under the clock.
+
 ## 17 (26 November 2026)
 
 - Back up scores saves one file. Some phones also saved the share title as a separate text file beside the backup.
