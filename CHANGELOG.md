@@ -2,6 +2,19 @@
 
 What changed in each version of Phase 10 Scorekeeper. The version number is shown at the bottom of the Menu. Dates are in Saskatchewan time.
 
+## 23 (26 November 2026)
+
+Accessibility, part 2:
+- Each page (a round, Count, Menu, Players and the rest) works as a dialog for screen readers. While it is open, the screen behind it cannot be reached with Tab.
+- Opening a page moves focus to its title. Closing it puts focus back on the button that opened it.
+- The Escape key closes the top page, just like its Cancel, Back or Done button.
+- After pressing Made phase, Went out, a seat arrow or another button, focus stays on that button instead of jumping to the top.
+- Count: each + and − button says which cards it is for, and the new total is read out after each press.
+- A player's warning is read with their points field. If Save stops, a screen reader hears what to check.
+- The rounds tables have column headings, and the Σ row reads as Total. The card picture next to the dealer is skipped.
+- The Update available bar is read out when it appears.
+- In Players, the ↑, ↓ and ✕ buttons use the name as it is typed.
+
 ## 22 (26 November 2026)
 
 Accessibility, part 1:
