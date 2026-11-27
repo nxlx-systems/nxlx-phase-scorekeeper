@@ -745,7 +745,7 @@ function showPlayers(){
   const label = i => ({up: `Move ${who(i)} up`, down: `Move ${who(i)} down`, rm: `Remove ${who(i)}`});
   const draw = (to) => {
     const f = noteFocus($("#pageBody"));
-    if (f && to != null) f.val = String(to);
+    if (f && to != null && (f.attr === "up" || f.attr === "down")) f.val = String(to);
     let h = `<p class="hint">Seating order, going left around the table. The deal passes in this order.</p>`;
     h += seats.map((s,i)=>`<div class="namerow"><input value="${esc(s.name)}" data-name="${i}" placeholder="Name" aria-label="Player ${i+1} name">
       <button data-up="${i}" aria-label="${esc(label(i).up)}" ${i===0?"disabled":""}>↑</button>
@@ -876,6 +876,7 @@ function close(sel){
   const back = openers.get(el); openers.delete(el);
   syncInert();
   if (!back || back === document.body) return;          // e.g. a tap on iPhone, where buttons never take focus
+  if (back.tagName === "INPUT" || back.tagName === "TEXTAREA") return;   // a tap left focus in a field: leave the keyboard down
   if (back.isConnected && !back.closest("[inert]")) back.focus();
   // The main screen is often redrawn just after a page closes (after Save, for example), which
   // replaces the button that opened it. Once that is done, find the new one by its id.
@@ -903,8 +904,13 @@ function noteFocus(box){
   if (attr) return {attr, val: el.dataset[attr], input: el.tagName === "INPUT", s: el.selectionStart, e: el.selectionEnd};
   return el.id ? {id: el.id} : null;
 }
+// When a finger or mouse taps a button, the text field being typed in keeps focus on iPhone and
+// Mac; a redraw right after such a tap leaves the field unfocused, so the keyboard drops as before.
+let lastTap = 0;
+document.addEventListener("pointerdown", () => { lastTap = Date.now(); }, true);
 function restoreFocus(box, f){
   if (!f) return;
+  if (f.input && Date.now() - lastTap < 1000) return;
   const find = (a, v) => { const el = box.querySelector(`[data-${a}="${v}"]`); return el && !el.disabled ? el : null; };
   const pair = {up: "down", down: "up"};
   let el = f.id ? document.getElementById(f.id) : find(f.attr, f.val);
