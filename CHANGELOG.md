@@ -8,7 +8,7 @@ Accessibility, part 1:
 - Pinch to zoom works. Double-tap zoom stays off, so quick taps don't zoom.
 - Text follows your device's text size setting (Larger Text on iPhone and iPad, and the browser's text size elsewhere).
 - Clearer colours: dark text on the gold, coral and green buttons in dark mode, and a slightly deeper red and green in light mode. Field outlines are easier to see.
-- Name fields and backup boxes have labels for screen readers. Made phase, Went out and the first dealer say when they are chosen, and the chosen dealer shows a ✓.
+- Name fields and backup boxes have labels for screen readers. Made phase and the first dealer say when they are chosen, and the chosen dealer shows a ✓.
 - Menu, Cancel, Save, Done, Edit a round and Update now are at least 44 px tall, and a clear ring shows keyboard focus.
 
 ## 21 (26 November 2026)
