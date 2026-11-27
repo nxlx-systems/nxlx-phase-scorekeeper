@@ -53,13 +53,13 @@ button,input,textarea,select,label{font-family:inherit;line-height:inherit}
 @media (display-mode:standalone){@supports (-webkit-touch-callout:none){:root{--edge:24px}}}
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font:1rem/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
-body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 90px)}
+body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + max(90px, 3.6rem))}
 /* Solid strips under the clock and behind the Score round button, so the list slides away
    underneath them instead of showing through. The bottom one fades in over its top edge. */
 body::before,body::after{content:"";position:fixed;left:0;right:0;z-index:4}
 /* the strips take taps themselves, so nothing hidden behind them can be pressed by accident */
 body::before{top:0;height:calc(env(safe-area-inset-top) + var(--edge));background:var(--bg)}
-body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + 92px);
+body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + max(92px, 3.7rem));
   background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 20px)}
 /* while another page is open, the main screen is held still (see syncScrollLock) */
 body.locked{position:fixed;left:0;right:0;overflow:hidden}
@@ -147,7 +147,7 @@ tr.tap{cursor:pointer}
 .wide.danger{background:none;color:var(--accent);box-shadow:0 0 0 1px var(--line) inset}
 .namerow{display:flex;gap:8px;margin:8px 0}
 .namerow input{flex:1;min-width:0;min-height:48px;border-radius:12px;border:1px solid var(--field-line);background:var(--card);
-  color:var(--ink);font-size:1.125rem;padding:0 12px}
+  color:var(--ink);font-size:max(16px, 1.125rem);padding:0 12px}
 .namerow button{width:48px;border:0;border-radius:12px;background:var(--line);color:var(--ink);font-size:1.25rem}
 .namerow button:disabled{opacity:.35}
 ol.phases{padding-left:28px;margin:8px 0}
@@ -157,7 +157,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 .menuitem span{display:block;color:var(--muted);font-size:0.8125rem;margin-top:2px}
 .dealer{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
 .dealer>div{min-width:0;overflow-wrap:anywhere}
-.dicon{font-size:1.75rem;width:30px;text-align:center}
+.dicon{font-size:1.75rem;width:1.875rem;text-align:center}
 .dtag{font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--ink);color:var(--bg);
   border-radius:6px;padding:2px 6px;margin-left:4px}
 .dealt{display:block;font-size:0.6875rem;color:var(--muted);font-style:italic}
@@ -171,7 +171,7 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 #sheetRound.editing .top .link{color:#2a2100}
 .updbar{display:flex;gap:10px;align-items:center;background:var(--good);color:var(--good-ink);border-radius:14px;padding:10px 12px;margin:10px 0}
 .updbar span{flex:1;font-size:0.9375rem}
-.updbar button{border:0;border-radius:10px;min-height:44px;padding:0 14px;font-weight:700;background:#fff;color:#1c1d22}
+.updbar button{border:0;border-radius:10px;min-height:44px;padding:0 14px;font-weight:700;font-size:0.9375rem;background:#fff;color:#1c1d22}
 .welcome{text-align:center;padding:22px 18px}
 .welcome p{margin:10px 0;text-align:left}
 .wicon{width:88px;height:88px;border-radius:20px;display:block;margin:0 auto}
@@ -193,6 +193,8 @@ ol.phases li{padding:8px 0;border-bottom:1px solid var(--line)}
 label.menuitem{cursor:pointer}
 /* a clear ring around whatever has keyboard focus; the hidden file picker shows it on its label */
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+#sheetRound.editing .top :focus-visible{outline-color:#2a2100}
+.updbar :focus-visible{outline-color:var(--good-ink)}
 label.menuitem:has(+ #fileIn:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
 a.menuitem{text-decoration:none;box-sizing:border-box}
 .about-head{padding:8px 2px 4px}
@@ -206,7 +208,7 @@ a.menuitem{text-decoration:none;box-sizing:border-box}
 .smallprint ul{margin:4px 0 0;padding-left:18px}
 .smallprint li{margin-top:6px}
 .pastebox{width:100%;min-height:220px;border-radius:12px;border:1px solid var(--field-line);background:var(--card);color:var(--ink);
-  font:1rem/1.4 ui-monospace,Menlo,monospace;padding:10px}
+  font:max(16px, 1rem)/1.4 ui-monospace,Menlo,monospace;padding:10px}
 .past{padding:12px 14px}
 .past b{display:block}
 .past span{color:var(--muted);font-size:0.875rem}
@@ -488,7 +490,7 @@ function drawRound(){
         <button class="toggle ${draft.made[i]?"on":""}" data-made="${i}" aria-pressed="${draft.made[i]?"true":"false"}">${draft.made[i]?"✓ Made phase":"Made phase?"}</button>
       </div>
       <div class="ptsrow">
-        <button class="chip out ${isOut?"on":""}" data-out="${i}" aria-pressed="${isOut?"true":"false"}">Went out</button>
+        <button class="chip out ${isOut?"on":""}" data-out="${i}">Went out</button>
         <input inputmode="numeric" pattern="[0-9]*" placeholder="Points" value="${esc(draft.pts[i])}" data-pts="${i}" aria-label="Points for ${esc(name)}">
         <button class="chip" data-count="${i}">Count</button>
       </div>
