@@ -2,6 +2,11 @@
 
 What changed in each version of Phase 10 Scorekeeper. The version number is shown at the bottom of the Menu. Dates are in Saskatchewan time.
 
+## 21 (26 November 2026)
+
+- The fade at the bottom of each page is now a slight 10 px feather.
+- About: the install steps are a bulleted list, one device per line, with the device name in bold.
+
 ## 20 (26 November 2026)
 
 - A lighter fade at the bottom of the Menu and the other pages. It now covers only the strip at the very bottom of the screen.
