@@ -65,8 +65,10 @@ body::after{bottom:0;height:calc(env(safe-area-inset-bottom) + max(92px, 3.7rem)
 body.locked{position:fixed;left:0;right:0;overflow:hidden}
 header{display:flex;align-items:center;gap:8px;padding:calc(14px + var(--edge)) var(--gr) 6px var(--gl)}
 /* shrinks a little on narrow phones so "Phase 10 Scorekeeper" stays on one line beside Menu */
-header h1{font-size:clamp(1.125rem, 5.2vw, 1.75rem);margin:0;flex:1;min-width:0;letter-spacing:-.5px;line-height:1.15}
-header h1 small{display:block;font-size:0.875rem;color:var(--muted);font-weight:500;letter-spacing:0}
+/* the title and the line under it sit together; the line is not part of the heading (screen readers read the title alone) */
+header .htitle{flex:1;min-width:0}
+header h1{font-size:clamp(1.125rem, 5.2vw, 1.75rem);margin:0;min-width:0;letter-spacing:-.5px;line-height:1.15}
+header .htitle small{display:block;font-size:0.875rem;color:var(--muted);font-weight:500;letter-spacing:0;line-height:1.15}
 .iconbtn{border:0;background:var(--card);color:var(--ink);border-radius:12px;min-height:44px;min-width:44px;
   padding:0 12px;font-size:0.9375rem;font-weight:600;box-shadow:0 0 0 1px var(--line) inset}
 main,#upd{padding:0 var(--gr) 0 var(--gl)}
@@ -96,7 +98,7 @@ table{width:100%;border-collapse:collapse;font-size:0.9375rem}
 .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tablewrap th{white-space:nowrap}
 th,td{padding:8px 4px;text-align:center;border-bottom:1px solid var(--line)}
-th{font-size:0.8125rem;color:var(--muted);font-weight:600}
+th,td.tot{font-size:0.8125rem;color:var(--muted);font-weight:600}
 td.r{color:var(--muted);width:34px}
 tr.tap{cursor:pointer}
 .made{color:var(--good);font-weight:700;font-size:0.75rem;display:block}
@@ -196,6 +198,8 @@ label.menuitem{cursor:pointer}
 #sheetRound.editing .top :focus-visible{outline-color:#2a2100}
 .updbar :focus-visible{outline-color:var(--good-ink)}
 label.menuitem:has(+ #fileIn:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
+/* a page's title takes focus when the page opens (so screen readers start there); it is not a control, so no ring */
+.sheet .top h3:focus{outline:none}
 a.menuitem{text-decoration:none;box-sizing:border-box}
 .about-head{padding:8px 2px 4px}
 .about-head img{width:64px;height:64px;border-radius:14px;display:block;margin-bottom:12px}
@@ -216,34 +220,36 @@ a.menuitem{text-decoration:none;box-sizing:border-box}
 </head>
 <body>
 <header>
-  <h1>Phase 10 Scorekeeper<small id="sub"></small></h1>
+  <div class="htitle"><h1>Phase 10 Scorekeeper</h1><small id="sub"></small></div>
   <button class="iconbtn" id="btnMenu" aria-label="Menu">Menu</button>
 </header>
-<div id="upd"></div>
+<div id="upd" role="status"></div>
 <main id="main"></main>
 <button class="cta" id="btnRound">Score round</button>
 
 <!-- Round entry -->
-<section class="sheet" id="sheetRound">
-  <div class="top"><button class="link l" data-close>Cancel</button><h3 id="roundTitle">Round</h3><button class="link r" id="btnSaveRound">Save</button></div>
+<!-- Each page is a dialog: while it is open, the screen behind it cannot be reached (see open and close). -->
+<section class="sheet" id="sheetRound" role="dialog" aria-modal="true" aria-labelledby="roundTitle">
+  <div class="top"><button class="link l" data-close>Cancel</button><h3 id="roundTitle" tabindex="-1">Round</h3><button class="link r" id="btnSaveRound">Save</button></div>
   <div class="body" id="roundBody"></div>
+  <p class="vh" id="roundSaid" role="status"></p>
 </section>
 
 <!-- Card counter -->
-<section class="sheet" id="sheetCount">
-  <div class="top"><button class="link l" id="btnCountCancel">Cancel</button><h3 id="countTitle">Count cards</h3><button class="link r" id="btnCountUse">Use</button></div>
+<section class="sheet" id="sheetCount" role="dialog" aria-modal="true" aria-labelledby="countTitle">
+  <div class="top"><button class="link l" id="btnCountCancel">Cancel</button><h3 id="countTitle" tabindex="-1">Count cards</h3><button class="link r" id="btnCountUse">Use</button></div>
   <div class="body" id="countBody"></div>
 </section>
 
 <!-- Menu -->
-<section class="sheet" id="sheetMenu">
-  <div class="top"><span style="min-width:64px"></span><h3>Menu</h3><button class="link r" data-close>Done</button></div>
+<section class="sheet" id="sheetMenu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+  <div class="top"><span style="min-width:64px"></span><h3 id="menuTitle" tabindex="-1">Menu</h3><button class="link r" data-close>Done</button></div>
   <div class="body" id="menuBody"></div>
 </section>
 
 <!-- Generic page (players, phases, past games) -->
-<section class="sheet" id="sheetPage">
-  <div class="top"><button class="link l" id="pageBack">Back</button><h3 id="pageTitle"></h3><button class="link r" id="pageAction"></button></div>
+<section class="sheet" id="sheetPage" role="dialog" aria-modal="true" aria-labelledby="pageTitle">
+  <div class="top"><button class="link l" id="pageBack">Back</button><h3 id="pageTitle" tabindex="-1"></h3><button class="link r" id="pageAction"></button></div>
   <div class="body" id="pageBody"></div>
 </section>
 
@@ -271,7 +277,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 22;
+const APP_VERSION = 23;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -300,7 +306,7 @@ function newerElsewhere(){ try { const now = localStorage.getItem(KEY); return n
 function takeNewer(fromSave){
   if (newerElsewhere() == null) return false;
   state = load(); lastSaved = localStorage.getItem(KEY);
-  document.querySelectorAll(".sheet.open").forEach(el => el.classList.remove("open"));
+  closeAll();
   render();
   alert(fromSave
     ? "The scores were changed in another window. This screen now shows those scores, and your last change here was not saved. Please make it again."
@@ -379,7 +385,7 @@ function render(){
   let h = "";
   if (w) h += `<div class="banner"><b>${esc(w.name)} wins!</b>Finished phase 10 with ${w.total} points<a class="support" href="${LINKS.support}" target="_blank" rel="noopener">Enjoying it? Support the app</a></div>`;
   const d = nextDealer(g);
-  if (!w) h += `<div class="card dealer"><div class="dicon">🃏</div>
+  if (!w) h += `<div class="card dealer"><div class="dicon" aria-hidden="true">🃏</div>
       <div><div class="phasebadge">Round ${n+1} dealer</div><div class="pname">${esc(g.players[d])}</div>
       <div class="pdesc">${esc(g.players[(d+1)%g.players.length])} plays first</div></div>
       <button class="chip" id="btnDealer">Change</button></div>`;
@@ -401,7 +407,7 @@ function render(){
   h += `<div class="sechead"><h2>Rounds</h2>${n ? `<button class="chip small" id="btnEditRounds">Edit a round</button>` : ""}</div>`;
   if (!n) h += `<div class="card empty">No rounds yet. Tap “Score round” after each hand.</div>`;
   else {
-    h += `<div class="card tablewrap" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
+    h += `<div class="card tablewrap" style="padding:6px 10px"><table>${tableHead(g)}`;
     g.rounds.forEach((r,ri) => {
       const rd = dealerOf(g, ri);
       h += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>
@@ -413,6 +419,12 @@ function render(){
   $("#btnRound").textContent = w ? "Start a new game" : `Score round ${n+1}`;
   const be = $("#btnEditRounds"); if (be) be.onclick = pickRoundToEdit;
   const bd = $("#btnDealer"); if (bd) bd.onclick = chooseDealer;
+}
+// The rounds table's caption and column headings. The caption is for screen readers only, and
+// the "#" heading reads as "Round".
+function tableHead(g){
+  return `<caption class="vh">Points each round</caption><tr><th scope="col"><span aria-hidden="true">#</span><span class="vh">Round</span></th>${
+    g.players.map(p=>`<th scope="col">${esc(p)}</th>`).join("")}</tr>`;
 }
 function pickRoundToEdit(){
   const g = state.current;
@@ -453,7 +465,9 @@ function handProblem(i){
 }
 function showProblem(i){
   const msg = handProblem(i);
-  const el = document.getElementById(`warn-${i}`); if (el) el.textContent = msg ? `⚠ ${msg}` : "";
+  // The warning is the points field's description (aria-describedby), so a screen reader reads it
+  // with the field. It is not announced on every keystroke; Save says what is wrong if it stops.
+  const el = document.getElementById(`warn-${i}`); if (el) el.innerHTML = msg ? `<span aria-hidden="true">⚠</span> ${esc(msg)}` : "";
   const card = document.querySelector(`[data-entry="${i}"]`); if (card) card.classList.toggle("bad", !!msg);
 }
 function openRound(index){
@@ -469,11 +483,13 @@ function openRound(index){
   $("#roundTitle").textContent = index==null ? `Round ${num} · ${g.players[dl]} deals` : `Editing round ${num}`;
   $("#btnSaveRound").textContent = index==null ? "Save" : "Save changes";
   $("#sheetRound").classList.toggle("editing", index!=null);
+  $("#roundSaid").textContent = "";
   drawRound();
   open("#sheetRound");
 }
 function drawRound(){
   const g = state.current, st = stats(g);
+  const f = noteFocus($("#roundBody"));
   let h = "";
   if (draft.index!=null) h += `<div class="editwarn"><b>You are changing round ${draft.index+1}, which was already played.</b>
       ${esc(g.players[dealerOf(g, draft.index)])} dealt it. Tap Cancel to leave it as it was.</div>`;
@@ -487,15 +503,15 @@ function drawRound(){
       <div class="row1">
         <div class="pname"><span class="dot" style="background:${colorOf(g, i)}"></span>${esc(name)}
           <span class="pdesc" style="font-weight:400">· Phase ${ph}</span></div>
-        <button class="toggle ${draft.made[i]?"on":""}" data-made="${i}" aria-pressed="${draft.made[i]?"true":"false"}">${draft.made[i]?"✓ Made phase":"Made phase?"}</button>
+        <button class="toggle ${draft.made[i]?"on":""}" data-made="${i}" aria-pressed="${draft.made[i]?"true":"false"}">${draft.made[i]?`<span aria-hidden="true">✓ </span>Made phase`:"Made phase?"}</button>
       </div>
       <div class="ptsrow">
         <button class="chip out ${isOut?"on":""}" data-out="${i}">Went out</button>
-        <input inputmode="numeric" pattern="[0-9]*" placeholder="Points" value="${esc(draft.pts[i])}" data-pts="${i}" aria-label="Points for ${esc(name)}">
-        <button class="chip" data-count="${i}">Count</button>
+        <input inputmode="numeric" pattern="[0-9]*" placeholder="Points" value="${esc(draft.pts[i])}" data-pts="${i}" aria-label="Points for ${esc(name)}" aria-describedby="warn-${i}">
+        <button class="chip" data-count="${i}" aria-label="Count ${esc(name)}'s cards">Count</button>
       </div>
       <p class="hint">${esc(PHASES[ph-1])}</p>
-      <p class="warn" id="warn-${i}" role="status"></p>
+      <p class="warn" id="warn-${i}"></p>
     </div>`;
   });
   h += `<p class="hint">Points are the cards left in your hand. “Count” adds them up for you. Anyone who missed their phase still holds 10 cards.</p>`;
@@ -511,11 +527,17 @@ function drawRound(){
     if (!confirm(`Delete round ${draft.index+1}? This cannot be undone.`)) return;
     state.current.rounds.splice(draft.index,1); save(); close("#sheetRound"); render();
   };
+  restoreFocus($("#roundBody"), f);
 }
 $("#btnSaveRound").onclick = () => {
   document.activeElement && document.activeElement.blur();
   const issues = state.current.players.map((name,i) => { const m = handProblem(i); return m ? `• ${name}: ${m}` : null; }).filter(Boolean);
-  if (issues.length && !confirm(`Please check before saving:\n\n${issues.join("\n")}\n\nSave anyway?`)) return;
+  if (issues.length && !confirm(`Please check before saving:\n\n${issues.join("\n")}\n\nSave anyway?`)) {
+    // Say once, for screen readers, why nothing was saved (the warnings themselves stay quiet while typing).
+    const said = $("#roundSaid"); said.textContent = "";
+    setTimeout(() => { said.textContent = `Not saved yet. Please check: ${issues.map(s => s.slice(2)).join(" ")}`; }, 100);
+    return;
+  }
   const r = {pts: draft.pts.map(v => parseInt(v,10)||0), made: [...draft.made]};
   const g = state.current;
   if (draft.index==null){ r.dealer = nextDealer(g); g.rounds.push(r); g.dealerSet = null; }
@@ -538,18 +560,23 @@ function countProblem(){
   if (n > HAND) return `That's ${n} cards. Nobody ends a round with more than 10.`;
   return null;
 }
+// The rows are built once and stay, so a pressed + or − keeps focus. Only the numbers change.
+// The total, the card count and the warning sit in one status area, so a screen reader reads
+// the new total after each press.
 function drawCount(){
+  const box = $("#countBody");
+  if (!$("#countStatus")) {
+    box.innerHTML = `<div id="countStatus" role="status"></div>` + CARDS.map(c =>
+      `<div class="card counter"><div class="lbl"><b>${c.label}</b><span>${c.note}</span></div>
+      <button data-dec="${c.k}" aria-label="One less, ${c.label}">−</button><div class="n" data-n="${c.k}"></div><button data-inc="${c.k}" aria-label="One more, ${c.label}">+</button></div>`).join("");
+    box.querySelectorAll("[data-inc]").forEach(b => b.onclick = () => { counts[b.dataset.inc]++; drawCount(); });
+    box.querySelectorAll("[data-dec]").forEach(b => b.onclick = () => { counts[b.dataset.dec]=Math.max(0,counts[b.dataset.dec]-1); drawCount(); });
+  }
   const n = countCards(), pr = countProblem();
-  let h = `<div class="total">${countTotal()}<div class="pts">points in hand</div></div>
+  $("#countStatus").innerHTML = `<div class="total">${countTotal()}<div class="pts">points in hand</div></div>
     <div class="cardcount"><b>${n}</b> card${n===1?"":"s"}${draft.made[countFor] ? "" : " of 10"}</div>
-    <p class="warn" style="text-align:center">${pr ? "⚠ " + pr : ""}</p>`;
-  CARDS.forEach(c => {
-    h += `<div class="card counter"><div class="lbl"><b>${c.label}</b><span>${c.note}</span></div>
-      <button data-dec="${c.k}" aria-label="One less">−</button><div class="n">${counts[c.k]}</div><button data-inc="${c.k}" aria-label="One more">+</button></div>`;
-  });
-  $("#countBody").innerHTML = h;
-  document.querySelectorAll("[data-inc]").forEach(b => b.onclick = () => { counts[b.dataset.inc]++; drawCount(); });
-  document.querySelectorAll("[data-dec]").forEach(b => b.onclick = () => { counts[b.dataset.dec]=Math.max(0,counts[b.dataset.dec]-1); drawCount(); });
+    <p class="warn" style="text-align:center">${pr ? `<span aria-hidden="true">⚠</span> ${esc(pr)}` : ""}</p>`;
+  CARDS.forEach(c => { box.querySelector(`[data-n="${c.k}"]`).textContent = counts[c.k]; });
 }
 $("#btnCountCancel").onclick = () => close("#sheetCount");
 $("#btnCountUse").onclick = () => { const pr = countProblem(); if (pr && !confirm(`${pr}\n\nUse ${countTotal()} points anyway?`)) return; draft.pts[countFor] = String(countTotal()); close("#sheetCount"); drawRound(); };
@@ -653,14 +680,16 @@ function startNew(){
 function openSetup(names, dealer){
   let list = names.length >= 2 ? [...names] : [...names, ...Array(2 - names.length).fill("")];
   let first = Math.min(dealer || 0, list.length - 1);
+  const tick = `<span aria-hidden="true">✓ </span>`;
   const draw = () => {
+    const f = noteFocus($("#pageBody"));
     const shown = list.map((n,i) => n.trim() || `Player ${i+1}`);
     let h = `<p class="hint">Who's playing? Enter names in seating order, going left around the table. The deal passes in this order.</p>`;
     h += list.map((n,i)=>`<div class="namerow"><input value="${esc(n)}" data-sname="${i}" placeholder="Player ${i+1}" aria-label="Player ${i+1} name" autocapitalize="words">${
-      list.length>2?`<button data-srm="${i}" aria-label="Remove player ${i+1}">✕</button>`:""}</div>`).join("");
+      list.length>2?`<button data-srm="${i}" aria-label="Remove ${esc(shown[i])}">✕</button>`:""}</div>`).join("");
     if (list.length < 6) h += `<button class="wide" id="sAdd">Add player</button>`;
     h += `<h2>Who deals first?</h2><div class="dealpick">${shown.map((n,i)=>
-      `<button class="toggle ${i===first?"on":""}" data-sdeal="${i}" aria-pressed="${i===first?"true":"false"}">${i===first?"✓ ":""}${esc(n)}</button>`).join("")}</div>
+      `<button class="toggle ${i===first?"on":""}" data-sdeal="${i}" aria-pressed="${i===first?"true":"false"}">${i===first?tick:""}${esc(n)}</button>`).join("")}</div>
       <p class="hint" id="sFirst">${esc(shown[(first+1)%shown.length])} plays first.</p>
       <button class="wide primary" id="sStart">Start game</button>`;
     $("#pageBody").innerHTML = h;
@@ -668,7 +697,8 @@ function openSetup(names, dealer){
       inp.oninput = () => {
         const i = +inp.dataset.sname; list[i] = inp.value;
         const nm = j => list[j].trim() || `Player ${j+1}`;
-        document.querySelector(`[data-sdeal="${i}"]`).textContent = (i === first ? "✓ " : "") + nm(i);
+        document.querySelector(`[data-sdeal="${i}"]`).innerHTML = (i === first ? tick : "") + esc(nm(i));
+        const rm = document.querySelector(`[data-srm="${i}"]`); if (rm) rm.setAttribute("aria-label", `Remove ${nm(i)}`);
         $("#sFirst").textContent = `${nm((first+1)%list.length)} plays first.`;
       };
     });
@@ -679,6 +709,7 @@ function openSetup(names, dealer){
     document.querySelectorAll("[data-sdeal]").forEach(b => b.onclick = () => { first = +b.dataset.sdeal; draw(); });
     const add = $("#sAdd"); if (add) add.onclick = () => { list.push(""); draw(); const ins = document.querySelectorAll("[data-sname]"); ins[ins.length-1].focus(); };
     $("#sStart").onclick = start;
+    restoreFocus($("#pageBody"), f);
   };
   const start = () => {
     const g = state.current;
@@ -707,22 +738,32 @@ function showPlayers(){
   // so their scores, dealing history and colour can follow them when seats are moved.
   let seats = g.players.map((name,i) => ({name, from:i, color: (g.colors && g.colors[i] != null) ? g.colors[i] : i}));
   const freeColor = () => [0,1,2,3,4,5].find(c => !seats.some(s => s.color === c)) ?? 0;
-  const move = (i, by) => { const j = i + by; if (j < 0 || j >= seats.length) return; [seats[i], seats[j]] = [seats[j], seats[i]]; draw(); };
-  const draw = () => {
+  // The move buttons follow the player: after ↑, focus stays on that player's ↑ in their new seat.
+  const move = (i, by) => { const j = i + by; if (j < 0 || j >= seats.length) return; [seats[i], seats[j]] = [seats[j], seats[i]]; draw(j); };
+  // Each row's buttons say whose they are: the name, or the seat number while the name is empty.
+  const who = i => seats[i].name.trim() || `player ${i+1}`;
+  const label = i => ({up: `Move ${who(i)} up`, down: `Move ${who(i)} down`, rm: `Remove ${who(i)}`});
+  const draw = (to) => {
+    const f = noteFocus($("#pageBody"));
+    if (f && to != null && (f.attr === "up" || f.attr === "down")) f.val = String(to);
     let h = `<p class="hint">Seating order, going left around the table. The deal passes in this order.</p>`;
     h += seats.map((s,i)=>`<div class="namerow"><input value="${esc(s.name)}" data-name="${i}" placeholder="Name" aria-label="Player ${i+1} name">
-      <button data-up="${i}" aria-label="Move ${esc(s.name || "player")} up" ${i===0?"disabled":""}>↑</button>
-      <button data-down="${i}" aria-label="Move ${esc(s.name || "player")} down" ${i===seats.length-1?"disabled":""}>↓</button>${
-      locked || seats.length<=2 ? "" : `<button data-rm="${i}" aria-label="Remove ${esc(s.name || "player")}">✕</button>`}</div>`).join("");
+      <button data-up="${i}" aria-label="${esc(label(i).up)}" ${i===0?"disabled":""}>↑</button>
+      <button data-down="${i}" aria-label="${esc(label(i).down)}" ${i===seats.length-1?"disabled":""}>↓</button>${
+      locked || seats.length<=2 ? "" : `<button data-rm="${i}" aria-label="${esc(label(i).rm)}">✕</button>`}</div>`).join("");
     h += locked
       ? `<p class="hint">Use ↑ and ↓ if people are sitting in a different order. Scores move with each player, and the same person still deals next. To add or remove players, start a new game first.</p>`
       : (seats.length < 6 ? `<button class="wide" id="addP">Add player</button>` : "");
     $("#pageBody").innerHTML = h;
-    document.querySelectorAll("[data-name]").forEach(inp => inp.oninput = () => seats[+inp.dataset.name].name = inp.value);
+    document.querySelectorAll("[data-name]").forEach(inp => inp.oninput = () => {
+      const i = +inp.dataset.name; seats[i].name = inp.value;
+      Object.entries(label(i)).forEach(([k, text]) => { const b = document.querySelector(`[data-${k}="${i}"]`); if (b) b.setAttribute("aria-label", text); });
+    });
     document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => move(+b.dataset.up, -1));
     document.querySelectorAll("[data-down]").forEach(b => b.onclick = () => move(+b.dataset.down, 1));
     document.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { if (seats.length>2){ seats.splice(+b.dataset.rm,1); draw(); } });
     const add = $("#addP"); if (add) add.onclick = () => { if (seats.length<6){ seats.push({name:"", from:-1, color:freeColor()}); draw(); } };
+    restoreFocus($("#pageBody"), f);
   };
   showPage("Players", "", "Save", () => {
     const order = seats.map(s => s.from);              // order[newSeat] = oldSeat
@@ -762,9 +803,9 @@ function showPast(){
   showPage("Past games", h);
   document.querySelectorAll("[data-past]").forEach(b => b.onclick = () => {
     const g = state.past[+b.dataset.past];
-    let t = `<div class="card tablewrap" style="padding:6px 10px"><table><tr><th>#</th>${g.players.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>`;
-    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${Number(r.pts[i])||0}${r.made[i]?`<span class="made">✓</span>`:""}</td>`).join("")}</tr>`; });
-    t += `<tr><th>Σ</th>${stats(g).map(p=>`<th>${p.total}</th>`).join("")}</tr></table></div>
+    let t = `<div class="card tablewrap" style="padding:6px 10px"><table>${tableHead(g)}`;
+    g.rounds.forEach((r,ri)=>{ t += `<tr><td class="r">${ri+1}</td>${g.players.map((_,i)=>`<td>${Number(r.pts[i])||0}${r.made[i]?`<span class="made"><span aria-hidden="true">✓</span><span class="vh">made phase</span></span>`:""}</td>`).join("")}</tr>`; });
+    t += `<tr><th scope="row"><span aria-hidden="true">Σ</span><span class="vh">Total</span></th>${stats(g).map(p=>`<td class="tot">${p.total}</td>`).join("")}</tr></table></div>
       <button class="wide danger" id="delPast">Delete this game</button>`;
     showPage("Game", t);
     $("#delPast").onclick = () => { if (confirm("Delete this past game? This cannot be undone.")){ state.past.splice(+b.dataset.past,1); save(); showPast(); } };
@@ -800,7 +841,7 @@ function restoreFromText(text){
   const n = s.current.rounds.length;
   if (!confirm(`Replace the scores on this device with the backup? (${s.current.players.join(", ")}, ${n} round${n===1?"":"s"}, ${s.past.length} past game${s.past.length===1?"":"s"})`)) return;
   state = s; save();
-  document.querySelectorAll(".sheet.open").forEach(el => el.classList.remove("open"));
+  closeAll();
   render();
 }
 function importData(ev){
@@ -811,8 +852,75 @@ function importData(ev){
 }
 
 /* ---------- sheets ---------- */
-function open(sel){ $(sel).classList.add("open"); }
-function close(sel){ $(sel).classList.remove("open"); }
+// Pages stack in page order: the card counter sits over a round, and a page (Players, Past games
+// and so on) sits over the Menu. Only the top one can be reached by keyboard and screen readers:
+// the main screen and any page underneath are made inert while it is open.
+const MAIN_PARTS = ["header", "#upd", "#main", "#btnRound"];
+const openers = new Map();        // page -> what had focus when it opened, to go back to on close
+function topSheet(){ const o = document.querySelectorAll(".sheet.open"); return o.length ? o[o.length - 1] : null; }
+function syncInert(){
+  const top = topSheet();
+  MAIN_PARTS.forEach(s => $(s).toggleAttribute("inert", !!top));
+  document.querySelectorAll(".sheet").forEach(el => el.toggleAttribute("inert", el.classList.contains("open") && el !== top));
+}
+function open(sel){
+  const el = $(sel);
+  if (!el.classList.contains("open")) { openers.set(el, document.activeElement); el.classList.add("open"); }
+  syncInert();
+  const h = el.querySelector("h3"); if (h) h.focus();   // start reading at the page's title
+}
+function close(sel){
+  const el = $(sel);
+  if (!el.classList.contains("open")) return;
+  el.classList.remove("open");
+  const back = openers.get(el); openers.delete(el);
+  syncInert();
+  if (!back || back === document.body) return;          // e.g. a tap on iPhone, where buttons never take focus
+  if (back.tagName === "INPUT" || back.tagName === "TEXTAREA") return;   // a tap left focus in a field: leave the keyboard down
+  if (back.isConnected && !back.closest("[inert]")) back.focus();
+  // The main screen is often redrawn just after a page closes (after Save, for example), which
+  // replaces the button that opened it. Once that is done, find the new one by its id.
+  if (back.id) setTimeout(() => {
+    const again = document.getElementById(back.id);
+    if ((!document.activeElement || document.activeElement === document.body) && again && !again.closest("[inert]")) again.focus();
+  }, 0);
+}
+function closeAll(){ [...document.querySelectorAll(".sheet.open")].reverse().forEach(el => close("#" + el.id)); }
+// Escape closes the top page the same way its Cancel, Back or Done button does.
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape" || e.isComposing) return;
+  const top = topSheet(); if (!top) return;
+  const btn = top.id === "sheetCount" ? $("#btnCountCancel") : top.id === "sheetPage" ? $("#pageBack") : top.querySelector("[data-close]");
+  if (btn) { e.preventDefault(); btn.click(); }
+});
+// After a page's contents are redrawn (a button pressed, a row added), put focus back on the same
+// control, so keyboard and screen reader users are not dropped at the top. Only when focus was in
+// that part of the page before; a text field gets focus back only if it had it (with the caret
+// where it was), so a tap never brings up the on-screen keyboard.
+function noteFocus(box){
+  const el = document.activeElement;
+  if (!el || el === box || !box.contains(el)) return null;
+  const attr = Object.keys(el.dataset || {})[0];
+  if (attr) return {attr, val: el.dataset[attr], input: el.tagName === "INPUT", s: el.selectionStart, e: el.selectionEnd};
+  return el.id ? {id: el.id} : null;
+}
+// When a finger or mouse taps a button, the text field being typed in keeps focus on iPhone and
+// Mac; a redraw right after such a tap leaves the field unfocused, so the keyboard drops as before.
+let lastTap = 0;
+document.addEventListener("pointerdown", () => { lastTap = Date.now(); }, true);
+function restoreFocus(box, f){
+  if (!f) return;
+  if (f.input && Date.now() - lastTap < 1000) return;
+  const find = (a, v) => { const el = box.querySelector(`[data-${a}="${v}"]`); return el && !el.disabled ? el : null; };
+  const pair = {up: "down", down: "up"};
+  let el = f.id ? document.getElementById(f.id) : find(f.attr, f.val);
+  // the same control is gone or turned off (a row removed, a player moved to the top): use the
+  // nearest button instead, never a text field, or else the page's title
+  if (!el && !f.id && !f.input) el = (pair[f.attr] && find(pair[f.attr], f.val)) || find(f.attr, +f.val - 1);
+  if (!el || !box.contains(el)) el = box.closest(".sheet").querySelector("h3");
+  el.focus();
+  if (f.input && el.tagName === "INPUT" && f.s != null) { try { el.setSelectionRange(f.s, f.e); } catch(e){} }
+}
 // While any page (Menu, a round, Who deals? and so on) is open, hold the main screen still so it
 // cannot scroll behind it, then put it back exactly where it was. Watching the pages themselves
 // catches every way they open and close.
@@ -824,7 +932,7 @@ function syncScrollLock(){
 }
 const sheetWatch = new MutationObserver(syncScrollLock);
 document.querySelectorAll(".sheet").forEach(el => sheetWatch.observe(el, {attributes:true, attributeFilter:["class"]}));
-document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".sheet").classList.remove("open"));
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => close("#" + b.closest(".sheet").id));
 $("#btnMenu").onclick = () => { drawMenu(); open("#sheetMenu"); };
 $("#btnRound").onclick = () => { if (!state.current || winner(state.current)) startNew(); else openRound(null); };
 
