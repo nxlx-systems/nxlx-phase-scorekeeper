@@ -109,10 +109,10 @@ tr.tap{cursor:pointer}
   border-bottom:1px solid var(--line);background:var(--card)}
 .sheet .top h3{flex:1;margin:0;font-size:18px;text-align:center;min-width:0;overflow-wrap:anywhere}
 .sheet .body{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--gr) calc(env(safe-area-inset-bottom) + 24px) var(--gl)}
-/* a light feather at the bottom edge of each page instead of a hard cut: it covers only the home bar
-   area (at least 16px), fading the whole way down; taps pass through, and the last item scrolls clear of it */
+/* a light 10px feather at the bottom edge of each page instead of a hard cut;
+   taps pass through, and the last item scrolls clear of it */
 .sheet::after{content:"";position:absolute;left:0;right:0;bottom:0;z-index:1;pointer-events:none;
-  height:max(16px, env(safe-area-inset-bottom));background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg))}
+  height:10px;background:linear-gradient(to bottom, rgba(0,0,0,0), var(--bg))}
 .link{border:0;background:none;color:var(--accent);font-size:17px;font-weight:600;padding:8px 4px;min-width:64px}
 .link.l{text-align:left}.link.r{text-align:right}
 .entry .row1{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -197,6 +197,8 @@ a.menuitem{text-decoration:none;box-sizing:border-box}
 .credit a,.banner a,.smallprint a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .banner .support{display:block;margin-top:8px;font-size:14px;opacity:.95}
 .smallprint{margin:18px 2px 0;color:var(--muted);font-size:13px;line-height:1.45}
+.smallprint ul{margin:4px 0 0;padding-left:18px}
+.smallprint li{margin-top:6px}
 .pastebox{width:100%;min-height:220px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
   font:16px/1.4 ui-monospace,Menlo,monospace;padding:10px}
 .past{padding:12px 14px}
@@ -261,7 +263,7 @@ const COLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)","var(--p5)","var
 // colours list, so seat 1 gets colour 1 and so on, exactly as before.
 const colorOf = (g, i) => COLORS[((g.colors && g.colors[i] != null) ? g.colors[i] : i) % 6];
 const KEY = "phase10.v1";          // where scores live; never changes between app versions
-const APP_VERSION = 20;
+const APP_VERSION = 21;
 const LINKS = {
   support: "https://nxlx.gumroad.com/l/phase-ten-scorekeeper",
   shop: "https://nxlx.gumroad.com",
@@ -551,6 +553,8 @@ const INSTALL = {
   android: "Android: open your browser's menu (⋮), then Install app or Add to Home screen.",
   desktop: "Computer: in Chrome or Edge, use the install button in the address bar. In Safari on a Mac, choose File, then Add to Dock."
 };
+// one install line for About as a list item, with the device name in bold
+function installItem(k){ const i = INSTALL[k].indexOf(": "); return `<li><b>${INSTALL[k].slice(0, i)}:</b> ${INSTALL[k].slice(i + 2)}</li>`; }
 function platform(){
   const ua = navigator.userAgent || "";
   if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "ios";
@@ -576,7 +580,7 @@ function showAbout(){
     ${a(LINKS.shop, "More from NXLX", "Stage tools and updates on Gumroad")}
     ${a(LINKS.instagram, "Instagram", "@nxlx.systems")}
     <p class="smallprint">Phase 10 Scorekeeper v${APP_VERSION}. The code is open to read on <a href="${LINKS.code}" target="_blank" rel="noopener">GitHub</a> under the PolyForm Noncommercial licence. Your scores stay on this device.</p>
-    <p class="smallprint"><b>Install it</b> to use it without internet:<br>${INSTALL.ios}<br>${INSTALL.android}<br>${INSTALL.desktop}</p>
+    <div class="smallprint"><b>Install it</b> to use it without internet:<ul>${["ios", "android", "desktop"].map(installItem).join("")}</ul></div>
     <p class="smallprint">Phase 10 is a trademark of Mattel, Inc. This app is not affiliated with or endorsed by Mattel.</p>`);
 }
 // The copy of the scores that "Update now" saves before it changes anything (only if it held a game).
