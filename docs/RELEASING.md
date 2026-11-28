@@ -40,7 +40,8 @@ kill %1
 
 - Scores live in the browser's `localStorage` under the key **`phase10.v1`**. Never rename it, and keep old saved data readable.
 - The service worker serves the saved copy first (works offline). Installed apps only change when the person taps **Update now**, which checks for a connection, saves a safety copy (`phase10.beforeUpdate`, restorable from the Menu) and then clears the saved app files.
-- **Keep `sw.js` the same between versions.** A browser that sees a changed `sw.js` installs it by itself, which updates the app without "Update now" and without the safety copy. Change it only to fix the service worker, and know that that one release reaches installed apps without asking.
+- **Keep `sw.js` the same between versions.** A browser that sees a changed `sw.js` installs it by itself, which updates the app without "Update now" and without the safety copy. Change it only to fix the service worker, and know that that one release reaches installed apps without asking. Since version 24 a new `sw.js` keeps the app files already saved, so the app itself still changes only through Update now.
+- **Other NXLX apps share this web address** (nxlx-systems.github.io) and so share its saved files. `sw.js` removes only caches whose names start with `phase10-`; every cache name Phase 10 uses must start with it.
 - The web address must not change: scores belong to the address, so a new address starts with no scores.
 
 ## Screenshots and tests

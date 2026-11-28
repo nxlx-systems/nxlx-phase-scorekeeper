@@ -2,6 +2,11 @@
 
 What changed in each version of Phase 10 Scorekeeper. The version number is shown at the bottom of the Menu. Dates are in Saskatchewan time.
 
+## 24 (28 November 2026)
+
+- Updating Phase 10 Scorekeeper no longer removes the offline copy of other NXLX apps opened in the same browser (such as Nightbloom). Before, someone with both apps on Android or a computer could find the other one would not open offline until it had been online once.
+- This version changes the part that keeps the app working offline. Browsers pick that up on their own, but it keeps the app files you already have, so the app itself still only changes when you tap Update now.
+
 ## 23 (26 November 2026)
 
 Accessibility, part 2:
