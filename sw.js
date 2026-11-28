@@ -1,12 +1,12 @@
 // Keeps the app working with no internet.
 // The app files are saved on the device and always opened from there (fast, works offline).
 // Updates only happen when the person taps "Update now", which saves a safety copy of the
-// scores and then clears these saved files so the newest ones are downloaded.
+// scores and then replaces these saved files with the newest ones.
 // Scores are stored separately and are never touched.
 //
 // IMPORTANT: keep this file the same from one app version to the next. When this file changes,
-// browsers install the new copy on their own, which updates the app without "Update now" and
-// without the safety copy. Change it only to fix the service worker itself (docs/RELEASING.md).
+// browsers install the new copy on their own. Since version 24 that keeps the app files already
+// saved, but change it only to fix the service worker itself (docs/RELEASING.md).
 const CACHE = "phase10-app";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
